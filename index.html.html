@@ -1867,19 +1867,10 @@ function renderSpeaking(sec){
 }
 function renderAIChat(sec){
   return `
-    <p class="est-hint">${sec.hint||''}</p>
-    <div class="aichat-wrap" id="aichatWrap">
-      <div class="aichat-msgs" id="aichatMsgs">
-        <div class="aichat-msg ai">
-          <div class="aichat-avatar">✦</div>
-          <div class="aichat-bubble">${sec.greeting||'¡Hola! ¿Cómo estás?'}</div>
-        </div>
-      </div>
-      <div class="aichat-input-row">
-        <input class="aichat-input" id="aichatInput" placeholder="Escribe en español…" autocomplete="off" maxlength="300">
-        <button class="aichat-send" id="aichatSend">Enviar</button>
-      </div>
-      <div class="aichat-counter" id="aichatCounter">Mensajes: 0 / 10</div>
+    <div class="aichat-wrap" style="padding:32px;text-align:center">
+      <div style="font-size:36px;margin-bottom:16px">💬</div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--bone);margin-bottom:10px">Conversación con Claude</div>
+      <div style="font-size:14px;color:var(--bone-dim);line-height:1.6;max-width:320px;margin:0 auto 20px">Practica "ir + a + infinitivo" en una conversación real con inteligencia artificial. <br><br><b style="color:var(--pres)">Próximamente disponible.</b></div>
     </div>`;
 }
 function renderSummary(sec){

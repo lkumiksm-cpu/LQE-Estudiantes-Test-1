@@ -1,0 +1,78 @@
+const https = require('https');
+
+function callAnthropicAPI(apiKey, messages, systemPrompt) {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: messages
+    });
+
+    const options = {
+      hostname: 'api.anthropic.com',
+      port: 443,
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': payload.length,
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (res.statusCode === 200) {
+            resolve(parsed);
+          } else {
+            reject(new Error('API error: ' + (parsed.error?.message || 'unknown error')));
+          }
+        } catch (e) {
+          reject(new Error('Failed to parse response: ' + e.message));
+        }
+      });
+    });
+
+    req.on('error', (e) => {
+      reject(new Error('Request failed: ' + e.message));
+    });
+
+    req.write(payload);
+    req.end();
+  });
+}
+
+exports.handler = async (event, context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+  }
+
+  try {
+    const body = JSON.parse(event.body);
+    const { messages, systemPrompt } = body;
+
+    if (!messages || !Array.isArray(messages)) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid messages' }) };
+    }
+
+    const apiKey = process.env.ANTHROPIC_API_KEY_LQEE03;
+    if (!apiKey) {
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Server configuration error' }) };
+    }

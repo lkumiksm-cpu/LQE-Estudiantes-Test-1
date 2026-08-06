@@ -1,0 +1,3214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LQE – Portal de estudiantes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#141820; --ink-2:#231b16; --panel:#1a2030; --panel-2:#33271f;
+    --line:#252e40; --bone:#f1f5f9; --bone-dim:#8899b8;
+    --accent:#e2a24c; --accent-deep:#c05a37;
+    --past:#e2a24c; --past-chip:#e2a24c; --past-chip-ink:#2a1a0c;
+    --pres:#67e8f9; --pres-chip:#67e8f9; --pres-chip-ink:#0b2320;
+    --radius:18px; --maxw:820px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(1200px 600px at 12% -5%,#2a1f18 0%,transparent 60%),
+      radial-gradient(1000px 700px at 96% 0%,#1e2d2c 0%,transparent 52%),
+      var(--ink);
+    color:var(--bone);font-family:"Instrument Sans",system-ui,sans-serif;
+    font-size:17px;line-height:1.55;min-height:100vh;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+  .eyebrow{font-family:"Space Mono",monospace;text-transform:uppercase;letter-spacing:.2em;font-size:12px;color:var(--bone-dim)}
+
+  header.bar{position:sticky;top:0;z-index:50;background:rgba(20,15,12,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .bar-in{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 24px;max-width:var(--maxw);margin:0 auto}
+  .back{font-family:"Space Mono";font-size:13px;color:var(--bone-dim);background:none;border:none;cursor:pointer;display:none;align-items:center;gap:7px;padding:0}
+  .back:hover{color:var(--bone)}
+  body.show-back .back{display:flex}
+  .brand{font-family:"Bricolage Grotesque";font-weight:800;font-size:20px;letter-spacing:-.02em;margin-right:auto;cursor:pointer}
+  .brand em{font-style:normal;color:var(--accent)}
+  .exp-btn{font-family:"Instrument Sans";font-weight:600;font-size:14px;text-decoration:none;color:#1a0d00;background:linear-gradient(135deg,#e2a24c,#c05a37);border-radius:99px;padding:8px 16px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:transform .15s,box-shadow .15s;box-shadow:0 6px 18px -8px #c05a37}
+  .exp-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px -10px #c05a37}
+  .progress-bar{height:3px;background:transparent;position:relative}
+  body.in-topic .progress-bar{background:var(--line)}
+  .progress-fill{height:100%;background:var(--accent);width:0%;transition:width .15s}
+
+  /* landing / menú */
+  .landing{padding:52px 0 20px;text-align:center}
+  .monogram{display:inline-flex;align-items:center;justify-content:center;width:88px;height:88px;border-radius:24px;background:linear-gradient(150deg,var(--past),var(--pres));color:#1a120a;font-family:"Bricolage Grotesque";font-weight:800;font-size:30px;box-shadow:0 22px 60px -20px rgba(226,162,76,.5);margin-bottom:22px}
+  .land-title{font-size:clamp(38px,7vw,64px);line-height:1;margin-bottom:14px}
+  .land-title em{font-style:normal;color:var(--past)}
+  .land-tag{color:var(--bone-dim);font-size:18px;max-width:520px;margin:0 auto}
+
+  .mainmenu{max-width:640px;margin:30px auto 0;text-align:left}
+  .branch{border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden;background:linear-gradient(180deg,var(--panel),var(--ink-2))}
+  .branch.open{border-color:var(--bc,var(--accent))}
+  .branch-head{display:flex;align-items:center;gap:14px;padding:18px 20px;cursor:pointer;user-select:none}
+  .branch-head .bi{font-size:26px;line-height:1}
+  .branch-head .bt{flex:1;min-width:0}
+  .branch-head .bname{font-family:"Bricolage Grotesque";font-weight:800;font-size:22px;color:var(--bc,var(--bone))}
+  .branch-head .bblurb{color:var(--bone-dim);font-size:13px;margin-top:2px}
+  .branch-head .bcount{font-family:"Space Mono";font-size:12px;color:var(--bone-dim);white-space:nowrap}
+  .branch-head .chev{transition:transform .2s;color:var(--bone-dim);font-size:14px}
+  .branch.open .chev{transform:rotate(180deg);color:var(--bc,var(--bone))}
+  .branch-body{display:none;border-top:1px solid var(--line);padding:6px}
+  .branch.open .branch-body{display:block}
+  .topic{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;color:var(--bone)}
+  .topic:hover{background:var(--panel-2)}
+  .topic .tnum{font-family:"Space Mono";font-size:12px;color:var(--bone-dim);width:22px;flex:none}
+  .topic .tname{flex:1;font-size:15px;line-height:1.25}
+  .topic .tgo{font-family:"Space Mono";font-size:11px;color:var(--bc,var(--accent));white-space:nowrap}
+  .topic.soon{cursor:default;opacity:.5}
+  .topic.soon:hover{background:transparent}
+  .topic.soon .tgo{color:var(--bone-dim)}
+
+  /* ══ ESTADOS DE DESBLOQUEO PROGRESIVO ══ */
+  /* Tema completado */
+  .topic.done .tnum{color:#34d399}
+  .topic.done .tstate{color:#34d399}
+  /* Tema desbloqueado activo (el actual a practicar) */
+  .topic.unlocked{background:rgba(226,162,76,.08)}
+  .topic.unlocked .tname{font-weight:600}
+  .topic.unlocked .tstate{color:var(--bc,var(--accent))}
+  /* Tema bloqueado */
+  .topic.locked{cursor:not-allowed;opacity:.45}
+  .topic.locked:hover{background:transparent}
+  .topic.locked .tname{color:var(--bone-dim)}
+  .topic.locked .tstate{color:var(--bone-dim)}
+  /* iconito de estado a la derecha */
+  .topic .tstate{font-family:"Space Mono";font-size:15px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+  .topic .tstate .lock-ico{font-size:13px}
+  /* tooltip de requisito al pasar el mouse sobre bloqueado */
+  .topic.locked{position:relative}
+  .topic.locked .lock-req{position:absolute;right:14px;top:100%;transform:translateY(-4px);
+    background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;
+    font-family:"Instrument Sans";font-size:12px;color:var(--bone-dim);white-space:nowrap;
+    opacity:0;pointer-events:none;transition:opacity .15s;z-index:20;box-shadow:0 8px 24px -8px #000}
+  .topic.locked:hover .lock-req{opacity:1}
+  /* barra de progreso global en la landing */
+  .lqe-prog-wrap{max-width:640px;margin:24px auto 0}
+  .lqe-prog-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .lqe-prog-label{font-family:"Space Mono";font-size:12px;color:var(--bone-dim);letter-spacing:.05em}
+  .lqe-prog-pct{font-family:"Bricolage Grotesque";font-weight:800;font-size:18px;color:var(--accent)}
+  .lqe-prog-track{height:8px;background:var(--panel);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+  .lqe-prog-fill{height:100%;background:linear-gradient(90deg,var(--past),var(--pres));width:0%;transition:width .5s ease;border-radius:99px}
+  .lqe-prog-name{font-family:"Space Mono";font-size:12px;color:var(--bone-dim);margin-top:8px;text-align:center}
+
+  /* ── Racha de días + Nivel CEFR ── */
+  .lqe-stats-row{display:flex;gap:12px;max-width:640px;margin:16px auto 0;flex-wrap:wrap}
+  .lqe-stat-card{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:16px;text-align:center}
+  .lqe-stat-icon{font-size:28px;margin-bottom:6px}
+  .lqe-stat-num{font-family:"Bricolage Grotesque";font-weight:800;font-size:28px;color:var(--bone)}
+  .lqe-stat-label{font-family:"Space Mono";font-size:11px;color:var(--bone-dim);margin-top:2px}
+  .lqe-level-badge{display:inline-block;font-family:"Bricolage Grotesque";font-weight:800;
+    font-size:22px;padding:6px 18px;border-radius:10px;margin-bottom:4px}
+  .lqe-level-sub{font-family:"Space Mono";font-size:11px;color:var(--bone-dim);margin-top:2px}
+  /* mapa de niveles */
+  .lqe-level-map{display:flex;align-items:center;gap:0;max-width:640px;margin:18px auto 0;position:relative}
+  .lqe-lvl-node{flex:1;text-align:center;position:relative;z-index:1}
+  .lqe-lvl-dot{width:36px;height:36px;border-radius:50%;border:3px solid var(--line);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 6px;
+    font-family:"Bricolage Grotesque";font-weight:800;font-size:12px;color:var(--bone-dim);
+    background:var(--panel);transition:.3s}
+  .lqe-lvl-dot.active{border-color:var(--pres);color:var(--pres);background:rgba(103,232,249,.1);
+    box-shadow:0 0 12px rgba(103,232,249,.3)}
+  .lqe-lvl-dot.done{border-color:#4ade80;color:#fff;background:#4ade80}
+  .lqe-lvl-label{font-family:"Space Mono";font-size:10px;color:var(--bone-dim)}
+  .lqe-lvl-label.active{color:var(--pres);font-weight:700}
+  .lqe-lvl-line{position:absolute;top:18px;left:0;right:0;height:3px;background:var(--line);z-index:0}
+  .lqe-lvl-line-fill{height:100%;background:linear-gradient(90deg,#4ade80,var(--pres));border-radius:3px;transition:width .5s}
+  .lqe-cert-btn{display:block;max-width:640px;margin:14px auto 0;background:transparent;
+    border:1px dashed rgba(103,232,249,.4);border-radius:12px;padding:12px 20px;
+    color:var(--pres);font-family:"Bricolage Grotesque";font-weight:800;font-size:14px;
+    cursor:pointer;text-align:center;transition:.2s}
+  .lqe-cert-btn:hover{background:rgba(103,232,249,.08);border-style:solid}
+  /* toast de desbloqueo */
+  .lqe-toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(120px);
+    background:linear-gradient(135deg,var(--past),var(--accent-deep));color:#1a0d00;
+    font-family:"Bricolage Grotesque";font-weight:800;font-size:16px;padding:14px 24px;border-radius:14px;
+    box-shadow:0 18px 50px -12px rgba(226,162,76,.6);z-index:9999;opacity:0;transition:.4s cubic-bezier(.2,.9,.3,1);
+    display:flex;align-items:center;gap:10px;max-width:90vw;text-align:center}
+  .lqe-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .lqe-toast .tico{font-size:24px}
+
+  /* ══ Celebración de desbloqueo (candado + confeti) ══ */
+  .lqe-celebrate{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;
+    justify-content:center;padding:24px;background:rgba(6,10,18,.82);backdrop-filter:blur(4px);
+    opacity:0;transition:opacity .35s;overflow:hidden}
+  .lqe-celebrate.show{opacity:1}
+  .lqe-cel-box{background:linear-gradient(160deg,var(--panel),var(--ink));
+    border:1px solid var(--line);border-radius:22px;padding:40px 34px 30px;max-width:400px;width:100%;
+    text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.6);position:relative;z-index:2;
+    transform:scale(.9);transition:transform .4s cubic-bezier(.2,.9,.3,1)}
+  .lqe-celebrate.show .lqe-cel-box{transform:scale(1)}
+  /* candado */
+  .lqe-lock{width:82px;height:96px;margin:0 auto 22px;position:relative}
+  .lqe-lock-shackle{position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:48px;height:52px;border:9px solid var(--pres);border-bottom:none;
+    border-radius:26px 26px 0 0;transition:transform .5s cubic-bezier(.5,-0.4,.4,1.4),
+    left .5s ease;transform-origin:right bottom}
+  .lqe-lock.open .lqe-lock-shackle{transform:translateX(-50%) rotate(-32deg) translateY(-4px);left:36%}
+  .lqe-lock-body{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+    width:82px;height:60px;background:linear-gradient(160deg,var(--pres),#3bb8c9);
+    border-radius:12px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 22px -6px rgba(103,232,249,.5)}
+  .lqe-lock-key{font-size:26px;opacity:0;transform:scale(0);transition:.4s .3s}
+  .lqe-lock.open .lqe-lock-key{opacity:1;transform:scale(1)}
+  .lqe-cel-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:26px;
+    color:var(--bone);margin-bottom:10px}
+  .lqe-cel-sub{font-size:15px;color:var(--bone-dim);line-height:1.55;margin-bottom:24px}
+  .lqe-cel-sub b{color:var(--pres);font-family:"Bricolage Grotesque";font-size:17px}
+  .lqe-cel-btn{background:var(--pres);color:#0a1820;border:none;border-radius:12px;
+    padding:14px 28px;font-family:"Bricolage Grotesque";font-weight:800;font-size:16px;
+    cursor:pointer;transition:.2s}
+  .lqe-cel-btn:hover{opacity:.88;transform:translateY(-1px)}
+  /* confeti */
+  .lqe-confetti{position:absolute;top:-20px;z-index:1;border-radius:2px;
+    animation:lqeConfettiFall linear forwards}
+  @keyframes lqeConfettiFall{
+    0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+    100%{transform:translateY(105vh) rotate(720deg);opacity:.2}}
+  .topic:focus-visible{outline:2px solid var(--bc,var(--accent));outline-offset:1px}
+  .land-note{max-width:640px;margin:22px auto 0;font-family:"Space Mono";font-size:12px;color:var(--bone-dim);text-align:center}
+
+  /* vista de práctica */
+  @keyframes waveHand{0%,100%{transform:rotate(0deg)}15%{transform:rotate(-22deg)}35%{transform:rotate(18deg)}55%{transform:rotate(-14deg)}75%{transform:rotate(10deg)}90%{transform:rotate(-5deg)}}
+  .est-welcome-wrap{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:center;padding:32px 0 20px;min-height:40vh}
+  @media(max-width:640px){.est-welcome-wrap{grid-template-columns:1fr;text-align:center}}
+  .est-welcome-hand-wrap{display:flex;align-items:center;justify-content:center}
+  .est-welcome-hand{font-size:clamp(80px,12vw,120px);display:inline-block;animation:waveHand 1.4s ease .3s both;transform-origin:bottom center;line-height:1;filter:drop-shadow(0 8px 32px rgba(103,232,249,.25))}
+  .est-welcome-main{display:flex;flex-direction:column;gap:12px}
+  .est-welcome-main .eyebrow{animation:welFadeUp .5s ease both}
+  .est-welcome-main h1{animation:welFadeUp .5s ease .1s both}
+  .est-welcome-main p{animation:welFadeUp .5s ease .2s both}
+  .est-welcome-stat{font-family:"Space Mono";font-size:12px;color:var(--bone-dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px;animation:welFadeUp .5s ease .3s both}
+  @keyframes fadeSlideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .phero{padding:40px 0 6px}
+  .phero .eyebrow{margin-bottom:12px;animation:welFadeUp .5s ease both}
+  .phero h1{font-size:clamp(28px,5vw,44px);margin-bottom:10px;animation:welFadeUp .5s ease .1s both}
+  .phero p{color:var(--bone-dim);max-width:560px;animation:welFadeUp .5s ease .2s both}
+  .est-sec{margin-bottom:28px;animation:fadeSlideIn .5s ease both}
+  section.les{padding:24px 0 50px}
+  .divider{border:none;border-top:1px solid var(--line);margin-bottom:24px}
+
+  .v-end{font-family:"Space Mono";font-weight:700;border-radius:6px;padding:1px 6px}
+  .verb{white-space:nowrap}
+  .v-stem{color:var(--bone)}
+  .v-end.acc{background:var(--accent);color:var(--ink)}
+  .land-demo{margin:20px auto 4px;font-family:"Bricolage Grotesque";font-weight:800;font-size:clamp(30px,6vw,50px)}
+  .land-demo .v-end{font-size:.82em}
+  .cue{font-family:"Space Mono";font-size:12px;padding:3px 8px;border-radius:6px;letter-spacing:.04em}
+  .cue.acc{background:var(--accent);color:var(--ink)}
+  .cue.past{background:var(--past-chip);color:var(--past-chip-ink)}
+  .cue.pres{background:var(--pres-chip);color:var(--pres-chip-ink)}
+  .hintv{color:var(--bone-dim);font-size:13px;font-style:italic}
+
+  .pr{background:linear-gradient(180deg,var(--panel),var(--ink-2));border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+  .pr .q{font-size:17px;margin-bottom:12px}
+  .pr-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .pr input{font-family:"Space Mono";font-size:16px;background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px 13px;color:var(--bone);min-width:160px}
+  .pr input:focus{outline:2px solid var(--pres);outline-offset:1px}
+  .pr .check{font-family:"Instrument Sans";font-weight:600;font-size:14px;background:var(--bone);color:var(--ink);border:none;border-radius:9px;padding:10px 16px;cursor:pointer}
+  .pr .reveal{background:transparent;border:1px solid var(--line);color:var(--bone-dim);border-radius:9px;padding:10px 14px;cursor:pointer;font-size:14px}
+  .pr .fb{font-size:14px;margin-top:11px;display:none}
+  .pr .fb.show{display:block}
+  .pr .fb.ok{color:var(--pres)} .pr .fb.near{color:var(--past)} .pr .fb.no{color:#ef7a5a}
+  .pr .fb b{font-family:"Space Mono"}
+  .score{font-family:"Space Mono";color:var(--bone-dim);font-size:14px;margin-top:8px}
+  .soonbox{background:var(--panel);border:1px dashed var(--line);border-radius:14px;padding:26px;text-align:center;color:var(--bone-dim)}
+  .soonbox b{color:var(--bone);font-family:"Bricolage Grotesque";display:block;font-size:20px;margin-bottom:6px}
+
+  /* actividad de ciudades */
+  .city-card{background:linear-gradient(160deg,var(--panel),var(--ink-2));border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:4px}
+  .city-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .city-flag{font-size:46px;line-height:1}
+  .city-name{font-family:"Bricolage Grotesque";font-weight:800;font-size:clamp(26px,5vw,34px)}
+  .city-hint{color:var(--bone-dim);font-size:14px;margin-bottom:14px}
+  .cq{border-top:1px solid var(--line);padding:14px 0}
+  .cq-q{font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:9px}
+  .cq-n{font-family:"Space Mono";font-size:12px;background:var(--accent);color:var(--ink);border-radius:6px;padding:2px 8px}
+  .cq input{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px 12px;color:var(--bone);font-size:15px;font-family:"Instrument Sans"}
+  .cq input:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .cq-reveal{margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .cq .reveal{background:transparent;border:1px solid var(--line);color:var(--bone-dim);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+  .cq .ans{color:var(--pres);font-size:14px;display:none;font-family:"Space Mono"}
+  .cq .ans.show{display:inline}
+  .city-next{margin-top:18px;font-family:"Instrument Sans";font-weight:600;font-size:15px;background:var(--accent);color:var(--ink);border:none;border-radius:99px;padding:12px 22px;cursor:pointer}
+  .city-count{font-family:"Space Mono";font-size:12px;color:var(--bone-dim);margin-left:12px}
+  /* chat como notificación animada */
+  @keyframes chatPop{0%{opacity:0;transform:translateY(10px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes chatRing{0%,100%{transform:rotate(0)}15%{transform:rotate(-12deg)}30%{transform:rotate(10deg)}45%{transform:rotate(-8deg)}60%{transform:rotate(6deg)}75%{transform:rotate(-4deg)}}
+  @keyframes chatPulse{0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,.5)}70%{box-shadow:0 0 0 10px rgba(167,139,250,0)}}
+  .topic-chat{margin-top:22px;background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(90,208,189,.08));border:2px solid rgba(167,139,250,.5);border-radius:18px;padding:20px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;animation:chatPop .4s ease both;position:relative;overflow:hidden}
+  .topic-chat::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(167,139,250,.06),transparent);pointer-events:none}
+  .topic-chat-icon{font-size:32px;animation:chatRing 2.5s ease 1s both;flex:none;line-height:1;position:relative}
+  .topic-chat-icon::after{content:'EN VIVO';position:absolute;top:-6px;right:-14px;font-family:"Space Mono";font-size:8px;font-weight:700;background:#a78bfa;color:#1a0d2e;padding:2px 5px;border-radius:5px;letter-spacing:.06em;animation:chatPulse 2s infinite}
+  .topic-chat-info{flex:1;min-width:160px}
+  .topic-chat-info .tci-label{font-family:"Bricolage Grotesque";font-weight:800;font-size:20px;margin-bottom:4px}
+  .topic-chat-info .tci-hint{font-size:14px;color:var(--bone-dim);font-style:italic}
+  .topic-chat-btn{font-family:"Instrument Sans";font-weight:700;font-size:15px;background:#a78bfa;color:#1a0d2e;border:none;border-radius:99px;padding:12px 22px;cursor:pointer;white-space:nowrap;transition:.15s;flex:none;animation:chatPulse 2s infinite}
+  .topic-chat-btn:hover{opacity:.88;transform:translateY(-2px);animation:none;box-shadow:0 6px 20px rgba(167,139,250,.4)}
+  .topic-chat-btn:disabled{opacity:.4;cursor:not-allowed;animation:none;box-shadow:none}
+  /* secciones múltiples */
+  .est-sec{margin-bottom:28px}
+  .est-sec-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .est-num{font-family:"Space Mono";font-size:12px;background:var(--accent-dim);color:var(--accent);padding:4px 10px;border-radius:99px;border:1px solid var(--accent-border)}
+  .est-sec-head h3{font-family:"Bricolage Grotesque";font-weight:800;font-size:20px;margin:0}
+  /* Quiz final — aspecto diferenciado */
+  .est-sec.is-final-quiz{border:1px solid rgba(103,232,249,.35);background:linear-gradient(160deg,rgba(103,232,249,.06),transparent)}
+  .est-sec.is-final-quiz .est-sec-head{padding-bottom:12px;border-bottom:1px solid rgba(103,232,249,.18);margin-bottom:18px}
+  .est-quiz-badge{font-family:"Space Mono";font-size:11px;font-weight:700;letter-spacing:.06em;
+    background:rgba(103,232,249,.15);color:var(--pres);border:1px solid rgba(103,232,249,.4);
+    border-radius:99px;padding:3px 11px;margin-left:6px}
+  .est-quiz-divider{width:100%;height:2px;background:linear-gradient(90deg,rgba(103,232,249,.4),transparent);
+    border-radius:99px;margin:0 0 24px}
+  .quiz-unlock-hint{font-family:"Space Mono";font-size:12px;color:var(--bone-dim);
+    margin-top:10px;text-align:center;opacity:.7}
+
+  /* ══ AI Chat con Claude (práctica de conversación) ══ */
+  .aichat-wrap{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;background:var(--ink)}
+  .aichat-msgs{min-height:280px;max-height:420px;overflow-y:auto;padding:18px 16px;
+    display:flex;flex-direction:column;gap:10px}
+  .aichat-msgs::-webkit-scrollbar{width:4px}
+  .aichat-msgs::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+  .aichat-msg{display:flex;gap:9px;max-width:86%;animation:acFadeIn .25s ease}
+  @keyframes acFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .aichat-msg.ai{align-self:flex-start}
+  .aichat-msg.user{align-self:flex-end;flex-direction:row-reverse}
+  .aichat-avatar{width:30px;height:30px;border-radius:50%;flex:none;font-size:14px;
+    display:flex;align-items:center;justify-content:center;font-weight:700}
+  .aichat-msg.ai .aichat-avatar{background:rgba(103,232,249,.15);border:1px solid rgba(103,232,249,.3);color:var(--pres)}
+  .aichat-msg.user .aichat-avatar{background:rgba(167,139,250,.2);border:1px solid rgba(167,139,250,.3);color:#a78bfa}
+  .aichat-bubble{padding:10px 14px;border-radius:14px;font-size:15px;line-height:1.5;word-break:break-word}
+  .aichat-msg.ai .aichat-bubble{background:var(--panel);border:1px solid var(--line);color:var(--bone);border-radius:4px 14px 14px 14px}
+  .aichat-msg.user .aichat-bubble{background:rgba(167,139,250,.18);border:1px solid rgba(167,139,250,.3);color:var(--bone);border-radius:14px 4px 14px 14px}
+  .aichat-typing{align-self:flex-start;display:flex;gap:5px;padding:12px 16px;
+    background:var(--panel);border:1px solid var(--line);border-radius:4px 14px 14px 14px}
+  .aichat-typing span{width:7px;height:7px;border-radius:50%;background:var(--pres);
+    animation:acDot 1.2s ease infinite}
+  .aichat-typing span:nth-child(2){animation-delay:.2s}
+  .aichat-typing span:nth-child(3){animation-delay:.4s}
+  @keyframes acDot{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+  .aichat-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line);
+    background:rgba(0,0,0,.15)}
+  .aichat-input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:99px;
+    padding:10px 16px;color:var(--bone);font-size:15px;font-family:"Instrument Sans",sans-serif;outline:none}
+  .aichat-input:focus{border-color:var(--pres)}
+  .aichat-input::placeholder{color:var(--bone-dim)}
+  .aichat-input:disabled{opacity:.5;cursor:default}
+  .aichat-send{background:var(--pres);color:#0a1820;border:none;border-radius:99px;
+    padding:10px 18px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;
+    font-size:14px;cursor:pointer;transition:.15s;white-space:nowrap}
+  .aichat-send:hover:not(:disabled){opacity:.88}
+  .aichat-send:disabled{opacity:.4;cursor:default}
+  .aichat-counter{font-family:"Space Mono";font-size:11px;color:var(--bone-dim);
+    text-align:right;padding:4px 16px 10px;background:rgba(0,0,0,.15)}
+  .est-hint{color:var(--bone-dim);font-size:15px;margin:0 0 14px}
+  /* ficha rellenable */
+  .est-ficha{display:flex;flex-direction:column;gap:8px}
+  .ef-row{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:10px}
+  .ef-label{font-family:"Space Mono";font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--bone-dim)}
+  .ef-input{background:transparent;border:none;border-bottom:2px solid var(--line);border-radius:0;padding:8px 4px;color:var(--bone);font-size:17px;font-family:"Instrument Sans";outline:none;width:100%;transition:border-color .2s}
+  .ef-input:focus{border-bottom-color:var(--accent)}
+  .ef-input::placeholder{color:rgba(241,245,249,.2);font-style:italic;font-size:14px}
+  /* gustos */
+  .est-gustos{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .eg-col{display:flex;flex-direction:column;gap:8px}
+  .eg-label{font-family:"Bricolage Grotesque";font-weight:800;font-size:18px;color:var(--accent);margin-bottom:4px}
+  .eg-hint{font-family:"Space Mono";font-size:11px;color:var(--bone-dim);font-weight:400;margin-left:8px}
+  /* modales */
+  .est-modales{display:flex;flex-direction:column;gap:10px}
+  .em-row{display:grid;grid-template-columns:140px 1fr;align-items:center;gap:12px;background:var(--panel);border-radius:12px;padding:10px 14px;border:1px solid var(--line)}
+  .em-verb{font-family:"Bricolage Grotesque";font-weight:800;font-size:18px;color:var(--accent)}
+  .em-inp{border-bottom:2px solid var(--line)}
+  /* modquiz — opción múltiple */
+  /* juego gato del verbo ir */
+  .ir-game-wrap{display:flex;flex-direction:column;gap:12px}
+  .ir-ref{display:flex;flex-wrap:wrap;gap:5px 12px;background:#141c2e;border:1px solid #252e40;border-radius:10px;padding:9px 14px}
+  .ir-ref-item{font-family:"Space Mono";font-size:12px;color:#8899b8}
+  .ir-ref-item b{color:#f1f5f9;font-weight:700}
+  .ir-ref-item em{color:#67e8f9;font-style:normal}
+  .ir-vs-bar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .ir-player-badge{font-family:"Bricolage Grotesque";font-weight:800;font-size:16px;color:#67e8f9;background:rgba(103,232,249,.1);border:2px solid #67e8f9;border-radius:99px;padding:6px 16px}
+  .ir-player-badge.ir-ai{color:#f472b6;background:rgba(244,114,182,.1);border-color:#f472b6}
+  .ir-vs{font-family:"Space Mono";font-size:12px;color:#4a6a8a;font-weight:700}
+  .ir-turn-info{font-family:"Space Mono";font-size:12px;color:#8899b8;text-align:center;min-height:18px}
+  .ir-result-msg{font-family:"Bricolage Grotesque";font-weight:800;font-size:20px;text-align:center;min-height:26px}
+  @keyframes irPreview{0%,100%{border-color:var(--line);background:var(--panel)}50%{border-color:#67e8f9;background:rgba(103,232,249,.15);box-shadow:0 0 0 2px rgba(103,232,249,.3)}}
+  .ir-cell.ir-preview{animation:irPreview .5s ease}
+  .ir-board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .ir-cell{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:110px;transition:border-color .2s,background .2s;cursor:pointer}
+  .ir-cell:hover:not(.taken-P):not(.taken-AI){border-color:var(--pres);background:rgba(103,232,249,.05)}
+  .ir-cell.taken-P{background:rgba(103,232,249,.12);border-color:#67e8f9;cursor:default}
+  .ir-cell.taken-AI{background:rgba(244,114,182,.1);border-color:#f472b6;cursor:default}
+  .ir-cell.win{box-shadow:0 0 0 3px rgba(103,232,249,.4);animation:irPulse .5s ease}
+  .ir-cell.win-ai{box-shadow:0 0 0 3px rgba(244,114,182,.4)}
+  @keyframes irPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+  .ir-cell-pro{font-family:"Bricolage Grotesque";font-weight:800;font-size:clamp(15px,2.5vw,18px);color:var(--bone)}
+  .ir-cell.taken-P .ir-cell-pro{color:#67e8f9}
+  .ir-cell.taken-AI .ir-cell-pro{color:#f472b6}
+  .ir-cell-inp{width:100%;background:transparent;border:none;border-bottom:2px solid var(--line);border-radius:0;color:var(--bone);font-family:"Bricolage Grotesque";font-weight:700;font-size:clamp(14px,2.5vw,17px);text-align:center;outline:none;padding:3px 2px}
+  .ir-cell-inp:focus{border-bottom-color:var(--pres)}
+  .ir-cell-inp::placeholder{color:#3a4a60;font-size:11px}
+  .ir-cell-inp.error{border-bottom-color:#f472b6;animation:irShake .35s ease}
+  @keyframes irShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .ir-cell-btn{background:var(--pres);color:#0a1820;border:none;border-radius:99px;padding:3px 10px;font-family:monospace;font-size:10px;font-weight:700;cursor:pointer}
+  .ir-cell-btn:disabled{background:#252e40;color:#3a4a60;cursor:default}
+  .ir-cell-result{font-family:"Bricolage Grotesque";font-weight:800;font-size:clamp(16px,3vw,22px)}
+  .ir-cell.taken-P .ir-cell-result{color:#67e8f9}
+  .ir-cell.taken-AI .ir-cell-result{color:#f472b6}
+  .ir-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .ir-new-btn{background:var(--pres);color:#0a1820;border:none;border-radius:99px;padding:9px 20px;font-family:"Bricolage Grotesque";font-weight:700;font-size:14px;cursor:pointer}
+  .ir-reset-btn{background:transparent;border:1px solid var(--line);border-radius:99px;padding:9px 18px;color:var(--bone-dim);font-family:"Space Mono";font-size:11px;cursor:pointer}
+  /* escenario */
+  .esc-scenarios{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .esc-opt{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px 14px;text-align:left;font-size:15px;font-family:"Instrument Sans";color:var(--bone);cursor:pointer;transition:.15s}
+  .esc-opt:hover,.esc-opt.active{border-color:var(--pres);background:rgba(103,232,249,.08)}
+  .esc-selected{font-family:"Space Mono";font-size:12px;color:var(--pres);margin-bottom:12px;display:none}
+  .esc-qrow{margin-bottom:12px}
+  .esc-qlabel{font-family:"Bricolage Grotesque";font-weight:700;font-size:17px;margin-bottom:6px}
+  .esp-row{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+  .esp-q{font-family:"Bricolage Grotesque";font-weight:700;font-size:18px;display:flex;align-items:center;gap:10px}
+  .esp-n{font-family:"Space Mono";font-size:11px;background:rgba(103,232,249,.15);color:var(--pres);border:1px solid var(--pres);border-radius:99px;padding:2px 8px}
+  .esp-inp{margin-top:4px}
+  .mq-item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .mq-sentence{font-size:17px;font-weight:600;margin-bottom:10px;color:var(--bone)}
+  .mq-blank{display:inline-block;min-width:100px;border-bottom:2px solid var(--pres);color:var(--pres);font-style:italic;text-align:center;margin:0 4px}
+  .mq-options{display:flex;gap:8px;flex-wrap:wrap}
+  .mq-opt{font-family:"Bricolage Grotesque";font-weight:700;font-size:15px;padding:8px 16px;border-radius:99px;border:2px solid var(--line);background:transparent;color:var(--bone);cursor:pointer;transition:.15s}
+  .mq-opt:hover:not(:disabled){border-color:var(--pres);color:var(--pres)}
+  .mq-opt.mq-correct{background:rgba(103,232,249,.15);border-color:var(--pres);color:var(--pres)}
+  .mq-opt.mq-wrong{background:rgba(244,114,182,.15);border-color:#f472b6;color:#f472b6}
+  .mq-opt:disabled{cursor:default;opacity:.7}
+  .mq-fb{font-family:"Space Mono";font-size:12px;margin-top:8px}
+  .mq-fb-ok{color:var(--pres)}
+  .mq-fb-no{color:#f472b6}
+
+  /* ══ ARTPICK: ¿definido o indefinido? (imagen animada) ══ */
+  .ap-round{background:linear-gradient(160deg,var(--panel),var(--ink-2));border:1px solid var(--line);
+    border-radius:16px;padding:20px 18px;margin-bottom:14px}
+  .ap-stage{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;
+    min-height:120px;padding:16px 8px;margin-bottom:16px;background:var(--ink);
+    border:1px solid var(--line);border-radius:14px;position:relative;overflow:hidden}
+  .ap-obj{font-size:clamp(44px,10vw,64px);line-height:1;filter:grayscale(.55) opacity(.5);
+    transition:filter .4s,transform .4s;position:relative}
+  /* objeto resaltado: color pleno + brillo + rebote */
+  .ap-obj.ap-hi{filter:grayscale(0) opacity(1);animation:apBounce 1.1s ease-in-out infinite}
+  .ap-obj.ap-hi::after{content:"";position:absolute;inset:-14px;border-radius:50%;
+    background:radial-gradient(circle,rgba(103,232,249,.45) 0%,transparent 70%);
+    z-index:-1;animation:apGlow 1.6s ease-in-out infinite}
+  @keyframes apBounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.12)}}
+  @keyframes apGlow{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.25)}}
+  .ap-obj.ap-dim{filter:grayscale(.7) opacity(.35)}
+  .ap-tag{font-family:"Space Mono";font-size:12px;color:var(--bone-dim);text-align:center;margin-bottom:14px}
+  .ap-tag b{color:var(--pres)}
+  .ap-options{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .ap-opt{font-family:"Bricolage Grotesque";font-weight:700;font-size:15px;padding:10px 18px;
+    border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--bone);
+    cursor:pointer;transition:.15s}
+  .ap-opt:hover:not(:disabled){border-color:var(--pres);color:var(--pres);transform:translateY(-1px)}
+  .ap-opt.ap-correct{background:rgba(103,232,249,.15);border-color:var(--pres);color:var(--pres)}
+  .ap-opt.ap-wrong{background:rgba(244,114,182,.15);border-color:#f472b6;color:#f472b6}
+  .ap-opt:disabled{cursor:default;opacity:.6}
+  .ap-why{font-size:13px;margin-top:12px;padding:10px 14px;border-radius:10px;
+    background:rgba(103,232,249,.08);border:1px solid rgba(103,232,249,.2);color:var(--bone-dim);
+    display:none;line-height:1.5}
+  .ap-why.show{display:block;animation:apFadeIn .35s ease}
+  @keyframes apFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .ap-why b{color:var(--pres)}
+  .est-sumcat{margin-bottom:28px;overflow:visible}
+  .est-sumcat-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:18px;margin-bottom:10px;display:flex;align-items:center;gap:0}
+  .fc-count{font-family:"Space Mono";font-size:11px;color:var(--bone-dim);font-weight:400;margin-left:10px}
+  .est-sum-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .est-sum-btn{font-family:"Space Mono";font-size:11px;padding:4px 11px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--bone-dim);cursor:pointer;transition:.15s}
+  .est-sum-btn:hover{border-color:var(--bone-dim)}
+  .est-sum-btn.active{background:var(--past);border-color:var(--past);color:#1a0d00}
+  .est-sum-btn[data-f="m"].active{background:#60a5fa;border-color:#60a5fa;color:#0a1828}
+  .est-sum-btn[data-f="f"].active{background:#f472b6;border-color:#f472b6;color:#1a0010}
+  .est-sum-btn[data-f="irr"].active{background:#f97316;border-color:#f97316;color:#1a0800}
+  /* flashcards */
+  .fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;overflow:visible}
+  .fc-card{height:120px;cursor:pointer;perspective:800px;outline:none;overflow:visible}
+  .fc-card.vc-hidden{display:none}
+  .fc-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .45s ease;will-change:transform}
+  .fc-card.flipped .fc-inner{transform:rotateY(180deg)}
+  .fc-front,.fc-back{position:absolute;inset:0;border-radius:12px;border:2px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+  .fc-front{background:var(--panel)}
+  .fc-back{transform:rotateY(180deg)}
+  .fc-es{font-family:"Bricolage Grotesque";font-weight:800;font-size:clamp(13px,2vw,17px);text-align:center;line-height:1.2}
+  .fc-tap{font-family:"Space Mono";font-size:9px;color:var(--bone-dim)}
+  .fc-en{font-size:15px;font-weight:600;color:var(--bone);text-align:center}
+  .fc-es-small{font-family:"Space Mono";font-size:10px;text-align:center}
+  /* slides de escenario */
+  .slides-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  @media(max-width:600px){.slides-wrap{grid-template-columns:1fr}}
+  .slide-stage{border-radius:16px;min-height:200px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:20px;background:linear-gradient(180deg,#1a6bcc,#f4a62a);transition:background .5s}
+  .slide-sky{position:absolute;inset:0;opacity:.3}
+  .slide-content{display:flex;flex-direction:column;align-items:center;gap:6px;z-index:1}
+  .slide-icon{font-size:52px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
+  .slide-temp{font-family:"Bricolage Grotesque";font-weight:800;font-size:32px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+  .slide-city{font-family:"Space Mono";font-size:11px;color:rgba(255,255,255,.85);text-align:center}
+  .slide-time{font-family:"Bricolage Grotesque";font-weight:700;font-size:20px;color:#fff;z-index:1}
+  .slide-part{font-family:"Space Mono";font-size:11px;color:rgba(255,255,255,.7);z-index:1}
+  .slide-nav{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .snav{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 14px;color:var(--bone-dim);font-family:"Space Mono";font-size:11px;cursor:pointer;transition:.15s}
+  .snav:hover:not(:disabled){border-color:var(--pres);color:var(--pres)}
+  .snav:disabled{opacity:.3;cursor:default}
+  .slide-dots{display:flex;gap:5px}
+  .sdot{width:7px;height:7px;border-radius:50%;background:var(--line);cursor:pointer;transition:.2s}
+  .sdot.active{background:var(--pres);transform:scale(1.3)}
+  .slide-qs{display:flex;flex-direction:column;gap:14px}
+  .slide-q{display:flex;flex-direction:column;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .sq-n2{font-family:"Space Mono";font-size:10px;color:var(--pres);font-weight:700}
+  .qtext{font-family:"Bricolage Grotesque";font-weight:700;font-size:17px}
+  .esc-ans-inp{margin-top:4px}
+  /* vibrado en scroll para emparejamientos */
+  @keyframes matchWiggle{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  .qa-card.wiggle{animation:matchWiggle .5s ease}
+  .tc-rule-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .tc-pill{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;font-size:14px}
+  .tc-es{background:rgba(226,162,76,.12);border:1px solid rgba(226,162,76,.4)}
+  .tc-es b{color:var(--past)}
+  .tc-son{background:rgba(103,232,249,.1);border:1px solid rgba(103,232,249,.3)}
+  .tc-son b{color:var(--pres)}
+  .tc-pill em{color:var(--bone-dim);font-style:normal;font-family:"Space Mono";font-size:11px}
+  .tc-rule-sep{color:var(--bone-dim)}
+  .tc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+  .tc-card{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s,background .2s}
+  .tc-card:hover{border-color:var(--pres);background:rgba(103,232,249,.05)}
+  .tc-card.tc-revealed{border-color:var(--pres)}
+  .tc-tap-label{font-family:"Space Mono";font-size:10px;color:var(--pres);animation:tcPulse 2s ease infinite;display:block}
+  @keyframes tcPulse{0%,100%{opacity:.4}50%{opacity:1}}
+  .tc-answer{display:none;font-family:"Bricolage Grotesque";font-weight:700;font-size:15px;color:var(--bone)}
+  .tc-card.tc-revealed .tc-tap-label{display:none}
+  .tc-card.tc-revealed .tc-answer{display:block}
+  /* animación guía de emparejamiento */
+  @keyframes matchGuideQ{0%,100%{transform:translateX(0);border-color:var(--line)}40%,60%{transform:translateX(6px);border-color:var(--past);background:rgba(226,162,76,.15)}}
+  @keyframes matchGuideA{0%,100%{border-color:var(--line)}40%,60%{border-color:var(--past);background:rgba(226,162,76,.1);box-shadow:0 0 0 2px rgba(226,162,76,.3)}}
+  .match-guide-q{animation:matchGuideQ 2s ease 2}
+  .match-guide-a{animation:matchGuideA 2s ease 2}
+  .est-ficha3{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:500px){.est-ficha3{grid-template-columns:1fr}}
+  .ef3-persona{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+  .ef3-label{font-family:"Bricolage Grotesque";font-weight:800;font-size:16px;color:var(--bone);margin-bottom:4px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .ef3-select{width:100%;background:var(--panel);border:2px solid var(--pres);border-radius:8px;padding:7px 10px;color:var(--bone);font-family:"Bricolage Grotesque";font-weight:800;font-size:16px;cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2367e8f9' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+  .ef3-select option{background:var(--panel);color:var(--bone)}
+  /* gustos de familia — 4 columnas */
+  .est-gustos5{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:500px){.est-gustos5{grid-template-columns:1fr}}
+  .qa-match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+  .qa-col{display:flex;flex-direction:column;gap:6px}
+  .qa-card{border-radius:10px;padding:10px 13px;cursor:pointer;font-size:15px;border:2px solid var(--line);background:var(--panel);transition:border-color .15s,background .15s;user-select:none;display:flex;align-items:center}
+  .qa-q-card{font-family:"Bricolage Grotesque";font-weight:700;color:var(--bone)}
+  .qa-a-card{color:var(--accent);font-style:italic}
+  .qa-card.selected{border-color:var(--past);background:rgba(226,162,76,.12)}
+  .qa-card.matched{border-color:var(--pres);background:rgba(103,232,249,.1);opacity:.7;cursor:default;pointer-events:none}
+  .qa-card.wrong{border-color:#f472b6;animation:qaShake .3s ease}
+  @keyframes qaShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .qa-status{font-family:"Space Mono";font-size:12px;color:var(--bone-dim);text-align:center;min-height:18px}
+  .qa-reset{display:block;margin:8px auto 0;font-family:"Space Mono";font-size:11px;padding:5px 14px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--bone-dim);cursor:pointer}
+  .qa3-toggle-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .qa3-btn{font-family:"Bricolage Grotesque";font-weight:700;font-size:14px;padding:8px 18px;border-radius:99px;border:2px solid var(--line);background:transparent;color:var(--bone-dim);cursor:pointer;transition:.15s}
+  .qa3-btn.active{background:var(--pres);border-color:var(--pres);color:#0a1820}
+  footer p{color:var(--bone-dim);font-size:14px}
+  .flink{color:var(--accent);background:none;border:none;cursor:pointer;font-size:14px;font-family:inherit}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
+
+  /* ── Personalidad por lección ── */
+  @keyframes floatA{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-18px) rotate(3deg)}}
+  @keyframes floatB{0%,100%{transform:translateY(0) rotate(4deg)}50%{transform:translateY(-12px) rotate(-4deg)}}
+  @keyframes floatC{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-22px) rotate(2deg)}}
+  .lesson-hero{position:relative;overflow:hidden;border-radius:16px;margin-bottom:8px}
+  .lesson-floaters{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+  .lf{position:absolute;font-size:var(--fs,1.8rem);opacity:.1;user-select:none;filter:blur(.4px)}
+  .lf:nth-child(3n){animation:floatA var(--dur,9s) ease-in-out infinite}
+  .lf:nth-child(3n+1){animation:floatB var(--dur,9s) ease-in-out infinite}
+  .lf:nth-child(3n+2){animation:floatC var(--dur,9s) ease-in-out infinite}
+  .lesson-hero-content{position:relative;z-index:1}
+  /* clima */
+  .hero-clima{background:linear-gradient(160deg,#061628 0%,#0d2a4a 50%,#1a3355 100%)}
+  .hero-clima::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(103,232,249,.12) 0%,transparent 60%);pointer-events:none;z-index:0}
+  /* presentación */
+  .hero-present{background:linear-gradient(160deg,#0a0614 0%,#180d28 50%,#221040 100%)}
+  .hero-present::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(167,139,250,.14) 0%,transparent 60%);pointer-events:none;z-index:0}
+  /* futuro */
+  .hero-futuro{background:linear-gradient(160deg,#0f0800 0%,#1e1000 50%,#2a1600 100%)}
+  .hero-futuro::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(249,115,22,.12) 0%,transparent 60%);pointer-events:none;z-index:0}
+  /* artículos */
+  .hero-art{background:linear-gradient(160deg,#06101c 0%,#0d1f33 50%,#1a2a1e 100%)}
+  .hero-art::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% 25%,rgba(96,165,250,.13) 0%,transparent 55%),radial-gradient(ellipse at 80% 40%,rgba(226,162,76,.10) 0%,transparent 55%);pointer-events:none;z-index:0}
+
+
+  /* ── Sistema de acceso mensual ── */
+  #access-overlay{position:fixed;inset:0;background:var(--ink);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:24px}
+  .access-box{background:var(--panel);border:1px solid var(--line);border-radius:20px;
+    padding:36px 32px;max-width:380px;width:100%;text-align:center;
+    box-shadow:0 24px 80px rgba(0,0,0,.6)}
+  .access-logo{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:28px;
+    margin-bottom:4px}
+  .access-logo em{font-style:normal;color:var(--pres)}
+  .access-sub{font-family:"Space Mono",monospace;font-size:11px;color:var(--bone-dim);
+    letter-spacing:.1em;text-transform:uppercase;margin-bottom:28px}
+  .access-label{font-size:14px;color:var(--bone-dim);margin-bottom:10px;line-height:1.5}
+  .access-inp{width:100%;background:var(--ink);border:2px solid var(--line);border-radius:10px;
+    padding:14px 16px;color:var(--bone);font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:700;font-size:20px;text-align:center;outline:none;letter-spacing:.1em;
+    text-transform:uppercase;transition:border-color .2s;margin-bottom:12px}
+  .access-inp:focus{border-color:var(--pres)}
+  .access-inp::placeholder{color:#3a4a60;font-size:15px;letter-spacing:0;text-transform:none}
+  .access-btn{width:100%;background:var(--pres);color:#0a1820;border:none;border-radius:10px;
+    padding:14px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:17px;
+    cursor:pointer;transition:.2s;margin-bottom:14px}
+  .access-btn:hover{opacity:.88}
+  .access-btn:disabled{background:#252e40;color:#4a6a8a;cursor:default}
+  .access-err{font-family:"Space Mono",monospace;font-size:12px;color:#f472b6;
+    min-height:18px;margin-bottom:8px}
+  .access-hint{font-size:12px;color:var(--bone-dim);line-height:1.5}
+  .access-hint a{color:var(--pres);text-decoration:none}
+  .access-loading{font-family:"Space Mono",monospace;font-size:12px;color:var(--bone-dim);
+    animation:accessPulse 1.2s ease infinite}
+  @keyframes accessPulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+  /* ══ Modal: experiencias de inmersión (próximamente) ══ */
+  .exp-ovl{position:fixed;inset:0;background:rgba(6,10,18,.82);backdrop-filter:blur(3px);
+    z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px}
+  .exp-ovl[hidden]{display:none}
+  .exp-box{background:var(--panel);border:1px solid var(--line);border-radius:20px;
+    padding:38px 30px 32px;max-width:400px;width:100%;text-align:center;
+    box-shadow:0 24px 80px rgba(0,0,0,.6);position:relative;animation:expPop .25s ease}
+  @keyframes expPop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+  .exp-close{position:absolute;top:12px;right:12px;background:transparent;border:none;
+    color:var(--bone-dim);font-size:16px;cursor:pointer;padding:6px 10px;border-radius:8px;transition:.15s}
+  .exp-close:hover{color:var(--bone);background:rgba(255,255,255,.06)}
+  .exp-icon{font-size:38px;margin-bottom:8px}
+  .exp-title{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:19px;
+    color:var(--bone);margin-bottom:10px;line-height:1.35}
+  .exp-sub{font-size:14px;color:var(--bone-dim);line-height:1.55;margin-bottom:24px}
+  .exp-interest-btn{width:100%;background:var(--pres);color:#0a1820;border:none;border-radius:10px;
+    padding:14px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:16px;
+    cursor:pointer;transition:.2s}
+  .exp-interest-btn:hover{opacity:.88}
+  .exp-interest-btn:disabled{background:#252e40;color:#4a6a8a;cursor:default}
+  .exp-thanks{font-family:"Space Mono",monospace;font-size:13px;color:var(--pres);margin-top:16px}
+
+</style>
+</head>
+<body>
+
+
+<!-- Pantalla de acceso mensual -->
+<div id="access-overlay">
+  <div class="access-box">
+    <div class="access-logo">LQE <em>· Estudiantes</em></div>
+    <div class="access-sub">Portal de estudiantes</div>
+    <div class="access-label">Enter your monthly access code<br>and your name to continue</div>
+    <input class="access-inp" id="accessName" placeholder="Your name" maxlength="40" autocomplete="off" style="margin-bottom:8px">
+    <input class="access-inp" id="accessInp" placeholder="Code (e.g. AGO-2026)" maxlength="12" autocomplete="off" autocapitalize="characters">
+    <div class="access-err" id="accessErr"></div>
+    <button class="access-btn" id="accessBtn">Enter →</button>
+    <div class="access-hint">
+      Don't have a code? Ask your teacher.<br>
+      <a href="#" id="expLinkAccess">✨ Ver experiencias de inmersión →</a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de experiencias de inmersión (aún no publicadas) -->
+<div id="exp-overlay" class="exp-ovl" hidden>
+  <div class="exp-box">
+    <button class="exp-close" id="expClose" aria-label="Cerrar">✕</button>
+    <div class="exp-icon">✨</div>
+    <h2 class="exp-title">2027 Immersive Experiences Coming Soon</h2>
+    <p class="exp-sub">We're preparing the next Spanish immersion trips. Let us know you're interested and we'll notify you as soon as registration opens.</p>
+    <button class="exp-interest-btn" id="expInterestBtn">I'm interested</button>
+    <div class="exp-thanks" id="expThanks" hidden>🎉 Thanks! We'll let you know soon.</div>
+  </div>
+</div>
+
+
+<header class="bar">
+  <div class="bar-in">
+    <button class="back" id="back">← Volver al menú</button>
+    <div class="brand" id="brand">LQE <em>· Estudiantes</em></div>
+    <!-- Muestra el modal "próximamente" hasta que la página de experiencias esté lista -->
+    <a class="exp-btn" href="#" id="expLinkHeader" rel="noopener">✨ Experiencias</a>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+</header>
+
+<main id="app"></main>
+
+<script>
+
+/* ── Sistema de acceso mensual ── */
+const ACCESS_KEY = 'lqe_access_token';
+const FIREBASE_DB = 'https://lqe---chat-default-rtdb.firebaseio.com';
+
+async function checkCode(code){
+  const url = `${FIREBASE_DB}/access/codes/${code.toUpperCase()}.json`;
+  try{
+    const res = await fetch(url);
+    if(res.status===401 || res.status===403){
+      return {ok:false, msg:'Permisos de la base de datos: el maestro debe permitir lectura en /access.'};
+    }
+    if(!res.ok) return {ok:false, msg:'Error de conexión ('+res.status+'). Intenta de nuevo.'};
+    const data = await res.json();
+    if(!data) return {ok:false, msg:'El código "'+code.toUpperCase()+'" no existe. El maestro debe crearlo en el panel de administración.'};
+    if(!data.active) return {ok:false, msg:'Este código ya no está activo.'};
+    const now = Date.now();
+    if(data.expires && now > data.expires) return {ok:false, msg:'Tu acceso mensual ha vencido. Contacta a tu maestro.'};
+    return {ok:true, name: data.name||'', expires: data.expires||null};
+  }catch(e){
+    return {ok:false, msg:'Sin conexión. Verifica tu internet.'};
+  }
+}
+
+function saveAccess(code, expires){
+  localStorage.setItem(ACCESS_KEY, JSON.stringify({code, expires, saved: Date.now()}));
+}
+
+function loadAccess(){
+  try{ return JSON.parse(localStorage.getItem(ACCESS_KEY)||'null'); }catch{ return null; }
+}
+
+function clearAccess(){
+  localStorage.removeItem(ACCESS_KEY);
+}
+
+async function initAccess(){
+  const overlay = document.getElementById('access-overlay');
+  const inp = document.getElementById('accessInp');
+  const btn = document.getElementById('accessBtn');
+  const err = document.getElementById('accessErr');
+
+  // Verificar acceso guardado
+  const saved = loadAccess();
+  if(saved){
+    // Verificar que no haya vencido localmente
+    if(!saved.expires || Date.now() < saved.expires){
+      // Verificar con Firebase que siga activo
+      const check = await checkCode(saved.code);
+      if(check.ok){ overlay.remove(); return; }
+      clearAccess();
+    } else {
+      clearAccess();
+      err.textContent = 'Tu acceso mensual ha vencido. Contacta a tu maestro.';
+    }
+  }
+
+  // Mostrar pantalla de acceso
+  overlay.style.display = 'flex';
+
+  const tryAccess = async()=>{
+    const code = inp.value.trim().toUpperCase();
+    const name = document.getElementById('accessName').value.trim();
+    if(!name){ err.textContent = 'Please enter your name.'; return; }
+    if(!code){ err.textContent = 'Please enter your code.'; return; }
+    btn.disabled = true;
+    btn.textContent = 'Checking…';
+    err.textContent = '';
+    const result = await checkCode(code);
+    if(result.ok){
+      saveAccess(code, result.expires);
+      LQEProgress.setName(name);
+      LQEProgress.recordStreak();
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity .4s';
+      setTimeout(()=>overlay.remove(), 400);
+    } else {
+      err.textContent = result.msg;
+      btn.disabled = false;
+      btn.textContent = 'Enter →';
+      inp.focus();
+    }
+  };
+
+  btn.addEventListener('click', tryAccess);
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter') tryAccess(); });
+  document.getElementById('accessName').addEventListener('keydown', e=>{ if(e.key==='Enter') inp.focus(); });
+  document.getElementById('accessName').focus();
+}
+
+initAccess();
+
+/* ══════════════════════════════════════════════════════════════════
+   PORTAL DE ESTUDIANTES — solo ejercicios.
+   Este archivo NO contiene el material de enseñanza del maestro.
+   El menú es el mismo; cada tema abre ejercicios de práctica.
+   ══════════════════════════════════════════════════════════════════ */
+
+const MENU = [
+  { key:'indicativo', label:'Indicativo', icon:'📢', color:'#e2a24c',
+    blurb:'Practica los tiempos del mundo real.',
+    topics:[
+      {n:'Preséntate en español', id:'presentacion'},
+      {n:'El clima (ser y estar)', id:'clima-ser-estar'},
+      {n:'Futuro compuesto (ir a + infinitivo)', id:'futuro-compuesto'},
+      {n:'Artículos definidos e indefinidos', id:'articulos'},
+      {n:'Género y número (hay)', id:'genero-numero'},
+      {n:'Gustar (gustar + verbo y gustar + sustantivo)', id:'gustar'},
+      {n:'Verbos con pronombres de objeto (similares a gustar)', id:'verbos-como-gustar'},
+      {n:'Presente simple', id:'presente-simple'},
+      {n:'Verbos reflexivos', id:'reflexivos'},
+      {n:'Verbos recíprocos', id:'reciprocos'},
+      {n:'Presente continuo', id:'presente-continuo'},
+      {n:'Pasado imperfecto', id:'imperfecto'},
+      {n:'Pretérito', id:'preterito'},
+      {n:'Presente perfecto', id:'presente-perfecto'},
+      {n:'Imperativo afirmativo', id:'imperativo-afirmativo'},
+      {n:'Imperativo negativo', id:'imperativo-negativo'}
+    ]},
+  { key:'subjuntivo', label:'Subjuntivo', icon:'🌀', color:'#a78bfa',
+    blurb:'Practica el modo de los deseos y las dudas.',
+    topics:[
+      {n:'Triggers de subjuntivo', id:'triggers-subjuntivo'},
+      {n:'Subjuntivo presente', id:'subjuntivo-presente'},
+      {n:'Condicional', id:'condicional'},
+      {n:'Subjuntivo pasado', id:'subjuntivo-pasado'},
+      {n:'Condicional + subjuntivo pasado', id:'condicional-subjuntivo-pasado'},
+      {n:'Las dos conjugaciones del subjuntivo pasado', id:'dos-conjugaciones-subjuntivo-pasado'},
+      {n:'Subjuntivo del pasado imperfecto', id:'subjuntivo-pasado-imperfecto'},
+      {n:'Subjuntivo del pasado perfecto', id:'subjuntivo-pasado-perfecto'}
+    ]},
+  { key:'pro', label:'Contenido Pro', icon:'💎', color:'#eab308',
+    blurb:'Práctica premium y avanzada.',
+    topics:[] }
+];
+
+/* ── EJERCICIOS por tema (id) ──
+   Para añadir práctica a un tema, crea aquí una entrada con su id. */
+const IND='#e2a24c', SUB='#a78bfa';  /* colores de rama */
+const EXERCISES = {
+
+  /* ══════════ INDICATIVO ══════════ */
+  'presentacion':{ title:'Preséntate en español', sub:'Practica cada sección de la clase.', color:IND,
+    sections:[
+      { id:'s02', num:'02', title:'¿Cómo te llamas?', type:'ficha',
+        fields:[
+          {label:'Nombre',     ph:'Me llamo…'},
+          {label:'Edad',       ph:'Tengo … años.'},
+          {label:'Origen',     ph:'Soy de…'},
+          {label:'Ciudad',     ph:'Vivo en…'},
+          {label:'Profesión',  ph:'Soy… / Trabajo en…'},
+          {label:'Hobby',      ph:'Estudio / Me gusta…'},
+          {label:'Familia',    ph:'Tengo…'},
+          {label:'Mascotas',   ph:'Tengo… / No tengo mascotas.'}
+        ]
+      },
+      { id:'s03', num:'03', title:'¿Quién es...? Habla de tu familia', type:'ficha3',
+        hint:'Presenta a alguien de tu familia. Completa su información.',
+        personas:[
+          { label:'Persona 1',
+            fields:[
+              {label:'Nombre',    ph:'Se llama…'},
+              {label:'Edad',      ph:'Tiene … años.'},
+              {label:'Origen',    ph:'Es de…'},
+              {label:'Profesión', ph:'Es… / Trabaja en…'},
+              {label:'Mascotas',  ph:'Tiene… / No tiene mascotas.'}
+            ]
+          },
+          { label:'Persona 2',
+            fields:[
+              {label:'Nombre',    ph:'Se llama…'},
+              {label:'Edad',      ph:'Tiene … años.'},
+              {label:'Origen',    ph:'Es de…'},
+              {label:'Profesión', ph:'Es… / Trabaja en…'},
+              {label:'Mascotas',  ph:'Tiene… / No tiene mascotas.'}
+            ]
+          }
+        ]
+      },
+      { id:'s04', num:'04', title:'Mis gustos e intereses', type:'gustos',
+        hint:'Escribe oraciones usando Me gusta / Me gustan.',
+        cols:[
+          {label:'Me gusta', hint:'singular · verbo', phs:['Me gusta el/la…','Me gusta + infinitivo…','Me gusta…']},
+          {label:'Me gustan', hint:'plural', phs:['Me gustan los/las…','Me gustan…','Me gustan…']}
+        ]
+      },
+      { id:'s05', num:'05', title:'Gustos de mi familia', type:'gustos5',
+        hint:'Escribe oraciones sobre los gustos de tu familia.',
+        cols:[
+          {label:'Le gusta',   hint:'él / ella · singular o verbo', phs:['Le gusta…','Le gusta…']},
+          {label:'Le gustan',  hint:'él / ella · plural',           phs:['Le gustan…','Le gustan…']},
+          {label:'Les gusta',  hint:'ellos · singular o verbo',     phs:['Les gusta…','Les gusta…']},
+          {label:'Les gustan', hint:'ellos · plural',               phs:['Les gustan…','Les gustan…']}
+        ]
+      },
+      { id:'s06', num:'06', title:'¿Por qué quieres aprender español?', type:'modales',
+        prompt:'Completa con un verbo modal y un infinitivo.',
+        rows:[
+          {verb:'Quiero',      ph:'Quiero… (to travel, to speak…)'},
+          {verb:'Necesito',    ph:'Necesito… (to work, to pass…)'},
+          {verb:'Me gustaría', ph:'Me gustaría… (to live, to study…)'},
+          {verb:'Tengo que',   ph:'Tengo que… (to pass, to practice…)'}
+        ]
+      },
+      { id:'s06b', num:'06b', title:'Verbos modales — elige el correcto', type:'modquiz',
+        hint:'Elige el verbo modal que mejor completa cada oración.',
+        items:[
+          { sentence:'_____ hablar español para mi trabajo.',
+            options:['Quiero','Necesito','Me gustaría','Tengo que'], answer:'Necesito', cue:'necesidad' },
+          { sentence:'_____ viajar por Latinoamérica algún día.',
+            options:['Quiero','Necesito','Tengo que','Debo'], answer:'Quiero', cue:'deseo' },
+          { sentence:'_____ estudiar antes del examen.',
+            options:['Me gustaría','Quiero','Tengo que','Necesito'], answer:'Tengo que', cue:'obligación' },
+          { sentence:'Yo _____ vivir en España algún día.',
+            options:['quiero','necesito','tengo que','debo'], answer:'quiero', cue:'deseo (Yo)' },
+          { sentence:'Yo _____ aprender español porque me gusta la cultura.',
+            options:['quiero','necesito','tengo que','debo'], answer:'quiero', cue:'deseo (Yo)' }
+        ]
+      },
+      { id:'s07', num:'07', title:'Preguntas y respuestas', type:'match',
+        hint:'Empareja cada pregunta con su respuesta correcta.',
+        pairs:[
+          {q:'¿Cómo te llamas?',          a:'Me llamo ___.'},
+          {q:'¿De dónde eres?',            a:'Soy de ___.'},
+          {q:'¿Cuántos años tienes?',      a:'Tengo ___ años.'},
+          {q:'¿Dónde vives?',              a:'Vivo en ___.'},
+          {q:'¿A qué te dedicas?',         a:'Soy ___ / Trabajo en ___.'},
+          {q:'¿Tienes hermanos?',          a:'Tengo ___ hermanos.'},
+          {q:'¿Qué idiomas hablas?',       a:'Hablo ___ y ___.'},
+          {q:'¿Por qué aprendes español?', a:'Quiero / Necesito ___.'}
+        ]
+      },
+      { id:'s08', num:'08', title:'Preguntar sobre alguien más', type:'match3',
+        hint:'Empareja. Usa el botón para cambiar entre singular y plural.',
+        sing:[
+          {q:'¿Cómo se llama?',           a:'Se llama ___.'},
+          {q:'¿De dónde es?',             a:'Es de ___.'},
+          {q:'¿Cuántos años tiene?',      a:'Tiene ___ años.'},
+          {q:'¿Dónde vive?',              a:'Vive en ___.'},
+          {q:'¿A qué se dedica?',         a:'Es ___ / Trabaja en ___.'},
+          {q:'¿Tiene hermanos?',          a:'Tiene ___ hermanos.'},
+          {q:'¿Qué idiomas habla?',       a:'Habla ___ y ___.'},
+          {q:'¿Por qué aprende español?', a:'Quiere / Necesita ___.'}
+        ],
+        plur:[
+          {q:'¿Cómo se llaman?',           a:'Se llaman ___.'},
+          {q:'¿De dónde son?',             a:'Son de ___.'},
+          {q:'¿Cuántos años tienen?',      a:'Tienen ___ años.'},
+          {q:'¿Dónde viven?',              a:'Viven en ___.'},
+          {q:'¿A qué se dedican?',         a:'Son ___ / Trabajan en ___.'},
+          {q:'¿Tienen hermanos?',          a:'Tienen ___ hermanos.'},
+          {q:'¿Qué idiomas hablan?',       a:'Hablan ___ y ___.'},
+          {q:'¿Por qué aprenden español?', a:'Quieren / Necesitan ___.'}
+        ]
+      },
+      { id:'s_summary', num:'📋', title:'Vocabulario', type:'summary',
+        categories:[
+          { title:'Verbos', color:'#e2a24c', filterable:true,
+            items:[
+              {es:'llamarse (-ar)',    en:'to be called',          end:'ar'},
+              {es:'ser (irreg.)',      en:'to be (identity)',       end:'irr'},
+              {es:'tener (irreg.)',    en:'to have / age',          end:'irr'},
+              {es:'vivir (-ir)',       en:'to live',                end:'ir'},
+              {es:'trabajar (-ar)',    en:'to work',                end:'ar'},
+              {es:'estudiar (-ar)',    en:'to study',               end:'ar'},
+              {es:'gustar (-ar)',      en:'to like',                end:'ar'},
+              {es:'hablar (-ar)',      en:'to speak',               end:'ar'},
+              {es:'querer (irreg.)',   en:'to want',                end:'irr'},
+              {es:'necesitar (-ar)',   en:'to need',                end:'ar'},
+              {es:'presentarse (-ar)', en:'to introduce oneself',   end:'ar'},
+              {es:'caminar (-ar)',     en:'to walk',                end:'ar'},
+              {es:'bailar (-ar)',      en:'to dance',               end:'ar'},
+              {es:'aprender (-er)',    en:'to learn',               end:'er'},
+              {es:'enseñar (-ar)',     en:'to teach',               end:'ar'}
+            ]
+          },
+          { title:'Familia y mascotas', color:'#a78bfa',
+            items:[
+              {es:'la familia',          en:'the family'},
+              {es:'el papá',             en:'the dad'},
+              {es:'la mamá',             en:'the mom'},
+              {es:'el hermano',          en:'the brother'},
+              {es:'la hermana',          en:'the sister'},
+              {es:'el abuelo',           en:'the grandfather'},
+              {es:'la abuela',           en:'the grandmother'},
+              {es:'el hijo',             en:'the son'},
+              {es:'la hija',             en:'the daughter'},
+              {es:'el tío',              en:'the uncle'},
+              {es:'la tía',              en:'the aunt'},
+              {es:'el primo',            en:'the cousin (m)'},
+              {es:'la prima',            en:'the cousin (f)'},
+              {es:'el sobrino',          en:'the nephew'},
+              {es:'la sobrina',          en:'the niece'},
+              {es:'el mayor',            en:'the oldest'},
+              {es:'el menor',            en:'the youngest'},
+              {es:'los gemelos',         en:'the twins'},
+              {es:'el esposo / la esposa',en:'husband / wife'},
+              {es:'la mascota',          en:'the pet'},
+              {es:'el perro',            en:'the dog'},
+              {es:'el gato',             en:'the cat'},
+              {es:'el perico',           en:'the parakeet'},
+              {es:'el hurón',            en:'the ferret'},
+              {es:'el dragón barbudo',   en:'the bearded dragon'}
+            ]
+          },
+          { title:'Pronombres con gustar', color:'#67e8f9',
+            items:[
+              {es:'me gusta / gustan',  en:'I like'},
+              {es:'le gusta / gustan',  en:'he/she likes'},
+              {es:'les gusta / gustan', en:'they like'}
+            ]
+          },
+          { title:'Verbos modales', color:'#f472b6',
+            items:[
+              {es:'quiero + inf.',       en:'I want to'},
+              {es:'necesito + inf.',     en:'I need to'},
+              {es:'me gustaría + inf.',  en:'I would like to'},
+              {es:'tengo que + inf.',    en:'I have to'}
+            ]
+          }
+        ]
+      },
+      { id:'s_quiz', num:'🎯', title:'Quiz', type:'quiz',
+        quiz:[
+          {before:'Yo me', verb:'llamarse', after:'Carlos.', tense:'acc', cue:'llamarse', answer:'llamo', person:'yo'},
+          {before:'Ella se', verb:'llamarse', after:'Ana.', tense:'acc', cue:'llamarse', answer:'llama', person:'ella'},
+          {before:'Ellos se', verb:'llamarse', after:'Juan y Pedro.', tense:'acc', cue:'llamarse pl.', answer:'llaman', person:'ellos'},
+          {before:'Yo', verb:'ser', after:'de México.', tense:'acc', cue:'ser', answer:'soy', person:'yo'},
+          {before:'Él', verb:'ser', after:'médico.', tense:'acc', cue:'ser', answer:'es', person:'él'},
+          {before:'Ellos', verb:'ser', after:'de España.', tense:'acc', cue:'ser pl.', answer:'son', person:'ellos'},
+          {before:'Yo', verb:'tener', after:'25 años.', tense:'acc', cue:'tener', answer:'tengo', person:'yo'},
+          {before:'Ella', verb:'tener', after:'dos hijos.', tense:'acc', cue:'tener', answer:'tiene', person:'ella'},
+          {before:'Ellas', verb:'tener', after:'mascotas.', tense:'acc', cue:'tener pl.', answer:'tienen', person:'ellas'},
+          {before:'Yo', verb:'vivir', after:'en Miami.', tense:'acc', cue:'-ir', answer:'vivo', person:'yo'},
+          {before:'Él', verb:'vivir', after:'en Madrid.', tense:'acc', cue:'-ir 3a', answer:'vive', person:'él'},
+          {before:'A mí me', verb:'gustar', after:'el café.', tense:'acc', cue:'gustar sing.', answer:'gusta', person:'mí'},
+          {before:'A mí me', verb:'gustar', after:'los idiomas.', tense:'acc', cue:'gustar pl.', answer:'gustan', person:'mí'},
+          {before:'A ella le', verb:'gustar', after:'bailar.', tense:'acc', cue:'gustar inf.', answer:'gusta', person:'ella'},
+          {before:'A ellos les', verb:'gustar', after:'los animales.', tense:'acc', cue:'gustar les pl.', answer:'gustan', person:'ellos'},
+          {before:'Yo', verb:'querer', after:'aprender español.', tense:'acc', cue:'modal', answer:'quiero', person:'yo'},
+          {before:'Yo', verb:'necesitar', after:'practicar más.', tense:'acc', cue:'modal', answer:'necesito', person:'yo'},
+          {before:'Yo', verb:'necesitar', after:'hablar español.', tense:'acc', cue:'modal', answer:'necesito', person:'yo'}
+        ]
+      }
+    ]
+  },
+  'clima-ser-estar':{ title:'El clima, la hora y la ubicación', sub:'Practica cada sección de la clase.', color:IND,
+    sections:[
+      { id:'c01', num:'01', title:'¿Cómo está el clima?', type:'modquiz',
+        hint:'Elige la opción correcta para describir el clima.',
+        items:[
+          {sentence:'Hoy _____ soleado y hace calor.',
+           options:['está','es','hay','hace'], answer:'está', cue:'estar + clima'},
+          {sentence:'Esta mañana _____ mucho frío.',
+           options:['está','hace','es','hay'], answer:'hace', cue:'hacer + temperatura'},
+          {sentence:'En invierno _____ mucho viento.',
+           options:['está','es','hace','hay'], answer:'hace', cue:'hacer + viento'},
+          {sentence:'El cielo _____ nublado hoy.',
+           options:['hace','hay','es','está'], answer:'está', cue:'estar + adjetivo'},
+          {sentence:'_____ niebla por la mañana.',
+           options:['Está','Hace','Hay','Es'], answer:'Hay', cue:'hay + sustantivo'},
+          {sentence:'Mañana _____ tormenta.',
+           options:['está','hace','hay','es'], answer:'hay', cue:'hay + sustantivo'},
+          {sentence:'En invierno _____ nevando mucho.',
+           options:['hace','hay','está','es'], answer:'está', cue:'estar + gerundio'},
+          {sentence:'Hoy _____ agradable — ni frío ni calor.',
+           options:['hace','hay','es','está'], answer:'está', cue:'estar + adjetivo'}
+        ]
+      },
+      { id:'c02', num:'02', title:'¿Qué hora es?', type:'timecards',
+        hint:'Toca cada reloj para revelar la hora en español.',
+        examples:[
+          {t:'Es la una en punto.',        h:1,  m:0,  dp:'madru'},
+          {t:'Son las diez de la mañana.',  h:10, m:0,  dp:'manana'},
+          {t:'Son las dos y cuarto.',       h:14, m:15, dp:'tarde'},
+          {t:'Son las nueve y media.',      h:21, m:30, dp:'noche'},
+          {t:'Son las cuatro menos cuarto.',h:15, m:45, dp:'tarde'},
+          {t:'Son las ocho de la mañana.',  h:8,  m:0,  dp:'manana'},
+          {t:'Son las seis y veinte.',       h:6,  m:20, dp:'manana'},
+          {t:'Son las doce del mediodía.',  h:12, m:0,  dp:'tarde'}
+        ]
+      },
+      { id:'c03', num:'03', title:'¿Dónde está?', type:'match',
+        hint:'Empareja cada continente con su descripción.',
+        pairs:[
+          {q:'🌎 América',    a:'Es el continente donde está México y Brasil.'},
+          {q:'🌍 Europa',     a:'Es el continente donde están España y Francia.'},
+          {q:'🌏 Asia',       a:'Es el continente donde está Japón y China.'},
+          {q:'🌍 África',     a:'Es el continente donde está Egipto y Nigeria.'},
+          {q:'🌏 Oceanía',    a:'Es el continente donde está Australia.'}
+        ]
+      },
+      { id:'c04', num:'04', title:'Practica con tu compañero', type:'speaking',
+        hint:'Responde estas preguntas en español. Habla en voz alta.',
+        questions:[
+          {q:'¿Cómo está el clima hoy?', prompt:'Está soleado / nublado / nevando / agradable… / Hace calor / frío / viento…'},
+          {q:'¿Qué hora es ahora?', prompt:'Son las… / Es la…'},
+          {q:'¿A cuántos grados está?', prompt:'Está a … grados.'},
+          {q:'¿Dónde estás ahora?', prompt:'Estoy en… / Estoy en… en…'}
+        ]
+      },
+      { id:'c05', num:'05', title:'Preposiciones de lugar', type:'modquiz',
+        hint:'Elige la preposición correcta.',
+        items:[
+          {sentence:'El gato está _____ la caja.',
+           options:['sobre','dentro de','debajo de','delante de'], answer:'dentro de', cue:'inside'},
+          {sentence:'El libro está _____ la mesa.',
+           options:['dentro de','debajo de','sobre','entre'], answer:'sobre', cue:'on top'},
+          {sentence:'El perro está _____ la silla.',
+           options:['sobre','delante de','debajo de','entre'], answer:'debajo de', cue:'under'},
+          {sentence:'El banco está _____ la farmacia y el café.',
+           options:['sobre','delante de','debajo de','entre'], answer:'entre', cue:'between'},
+          {sentence:'El gato está _____ el sofá.',
+           options:['dentro de','a la izquierda de','sobre','entre'], answer:'a la izquierda de', cue:'left of'}
+        ]
+      },
+      { id:'c06', num:'06', title:'Ciudades del mundo', type:'cities',
+        citySub:'Sale una ciudad al azar. Busca en internet y responde en español.'
+      },
+      { id:'c07', num:'07', title:'Describe el escenario', type:'escenario',
+        questions:[
+          {q:'¿Cómo está el clima?',          prompt:'Está… / Hace…'},
+          {q:'¿Qué hora es?',                 prompt:'Son las… / Es la…'},
+          {q:'¿A cuántos grados está?',        prompt:'Está a … grados.'},
+          {q:'¿Dónde está esta ciudad?',       prompt:'Está en… en…'}
+        ],
+        slides:[
+          {icon:'☀️',  temp:'34°C', city:'Dubai, Emiratos Árabes',    time:'2:00 PM',  part:'de la tarde',   sky:'afternoon'},
+          {icon:'🌧️', temp:'12°C', city:'Londres, Reino Unido',       time:'9:00 AM',  part:'de la mañana',  sky:'rainy'},
+          {icon:'❄️',  temp:'-5°C', city:'Moscú, Rusia',              time:'11:00 PM', part:'de la noche',   sky:'night'},
+          {icon:'🌤️', temp:'22°C', city:'Ciudad de México, México',   time:'7:30 AM',  part:'de la mañana',  sky:'morning'},
+          {icon:'⛈️', temp:'28°C', city:'Bangkok, Tailandia',         time:'4:00 PM',  part:'de la tarde',   sky:'cloudy'},
+          {icon:'🌅',  temp:'18°C', city:'Buenos Aires, Argentina',   time:'6:30 AM',  part:'de la mañana',  sky:'dawn'},
+          {icon:'☁️',  temp:'15°C', city:'Santiago, Chile',           time:'3:00 PM',  part:'de la tarde',   sky:'cloudy'},
+          {icon:'🌞',  temp:'26°C', city:'Tokio, Japón',              time:'8:00 PM',  part:'de la noche',   sky:'sunset'},
+          {icon:'🌨️', temp:'-2°C', city:'Toronto, Canadá',           time:'7:00 AM',  part:'de la mañana',  sky:'snowy'},
+          {icon:'😊',  temp:'24°C', city:'Madrid, España',            time:'1:00 PM',  part:'de la tarde',   sky:'afternoon'}
+        ]
+      },
+      { id:'c_vocab', num:'📋', title:'Vocabulario', type:'summary',
+        categories:[
+          { title:'Verbos del clima', color:'#e2a24c', filterable:true,
+            items:[
+              {es:'estar',   en:'to be (state)',    end:'irr'},
+              {es:'hacer',   en:'to make/do',       end:'irr'},
+              {es:'haber',   en:'there is/are',     end:'irr'},
+              {es:'ser',     en:'to be (identity)', end:'irr'},
+              {es:'llover',  en:'to rain',          end:'er'},
+              {es:'nevar',   en:'to snow',          end:'ar'}
+            ]
+          },
+          { title:'Gerundios', color:'#f472b6', filterable:true,
+            items:[
+              {es:'lloviendo', en:'raining',  end:'er'},
+              {es:'nevando',   en:'snowing',  end:'ar'},
+              {es:'brillando', en:'shining',  end:'ar'},
+              {es:'soplando',  en:'blowing',  end:'ar'}
+            ]
+          },
+          { title:'El clima', color:'#67e8f9',
+            items:[
+              {es:'el sol',         en:'the sun'},
+              {es:'la lluvia',      en:'the rain'},
+              {es:'la nieve',       en:'the snow'},
+              {es:'la niebla',      en:'the fog'},
+              {es:'la tormenta',    en:'the storm'},
+              {es:'el viento',      en:'the wind'},
+              {es:'el grado',       en:'the degree'},
+              {es:'la temperatura', en:'the temperature'},
+              {es:'agradable',      en:'pleasant'},
+              {es:'soleado',        en:'sunny'},
+              {es:'nublado',        en:'cloudy'}
+            ]
+          },
+          { title:'Preposiciones de lugar', color:'#a78bfa',
+            items:[
+              {es:'sobre',          en:'on / above'},
+              {es:'debajo de',      en:'under / below'},
+              {es:'dentro de',      en:'inside'},
+              {es:'delante de',     en:'in front of'},
+              {es:'detrás de',      en:'behind'},
+              {es:'entre',          en:'between'},
+              {es:'a la izquierda', en:'to the left'},
+              {es:'a la derecha',   en:'to the right'}
+            ]
+          }
+        ]
+      },
+      { id:'c_quiz', num:'🎯', title:'Quiz', type:'quiz',
+        quiz:[
+          {before:'Hoy', verb:'estar', after:'soleado.', tense:'acc', cue:'clima', answer:'está', person:'estar'},
+          {before:'', verb:'hacer', after:'mucho frío hoy.', tense:'acc', cue:'temperatura', answer:'hace', person:'hacer'},
+          {before:'', verb:'haber', after:'niebla por la mañana.', tense:'acc', cue:'existencia', answer:'hay', person:'haber'},
+          {before:'El cielo', verb:'estar', after:'nublado.', tense:'acc', cue:'clima', answer:'está', person:'estar'},
+          {before:'', verb:'ser', after:'la una en punto.', tense:'acc', cue:'la hora', answer:'es', person:'ser'},
+          {before:'', verb:'ser', after:'las tres de la tarde.', tense:'acc', cue:'la hora', answer:'son', person:'ser'},
+          {before:'México', verb:'estar', after:'en América.', tense:'acc', cue:'ubicación', answer:'está', person:'estar'},
+          {before:'El gato', verb:'preposición', after:'la caja (inside).', tense:'acc', cue:'lugar', answer:'dentro de', person:'prep.'},
+          {before:'El libro', verb:'preposición', after:'la mesa (on top).', tense:'acc', cue:'lugar', answer:'sobre', person:'prep.'}
+        ]
+      }
+    ],
+    citySub:'Sale una ciudad al azar. Busca en internet y responde en español.',
+    cities:[
+      {city:'Tokio', country:'Japón', continent:'Asia', flag:'🇯🇵', tz:'Asia/Tokyo'},
+      {city:'Nueva York', country:'Estados Unidos', continent:'América', flag:'🇺🇸', tz:'America/New_York'},
+      {city:'Londres', country:'Reino Unido', continent:'Europa', flag:'🇬🇧', tz:'Europe/London'},
+      {city:'París', country:'Francia', continent:'Europa', flag:'🇫🇷', tz:'Europe/Paris'},
+      {city:'El Cairo', country:'Egipto', continent:'África', flag:'🇪🇬', tz:'Africa/Cairo'},
+      {city:'Sídney', country:'Australia', continent:'Oceanía', flag:'🇦🇺', tz:'Australia/Sydney'},
+      {city:'Río de Janeiro', country:'Brasil', continent:'América', flag:'🇧🇷', tz:'America/Sao_Paulo'},
+      {city:'Ciudad de México', country:'México', continent:'América', flag:'🇲🇽', tz:'America/Mexico_City'},
+      {city:'Madrid', country:'España', continent:'Europa', flag:'🇪🇸', tz:'Europe/Madrid'},
+      {city:'Moscú', country:'Rusia', continent:'Europa', flag:'🇷🇺', tz:'Europe/Moscow'},
+      {city:'Pekín', country:'China', continent:'Asia', flag:'🇨🇳', tz:'Asia/Shanghai'},
+      {city:'Bombay', country:'India', continent:'Asia', flag:'🇮🇳', tz:'Asia/Kolkata'},
+      {city:'Nairobi', country:'Kenia', continent:'África', flag:'🇰🇪', tz:'Africa/Nairobi'},
+      {city:'Buenos Aires', country:'Argentina', continent:'América', flag:'🇦🇷', tz:'America/Argentina/Buenos_Aires'},
+      {city:'Lima', country:'Perú', continent:'América', flag:'🇵🇪', tz:'America/Lima'},
+      {city:'Berlín', country:'Alemania', continent:'Europa', flag:'🇩🇪', tz:'Europe/Berlin'},
+      {city:'Roma', country:'Italia', continent:'Europa', flag:'🇮🇹', tz:'Europe/Rome'},
+      {city:'Estambul', country:'Turquía', continent:'Europa', flag:'🇹🇷', tz:'Europe/Istanbul'},
+      {city:'Bangkok', country:'Tailandia', continent:'Asia', flag:'🇹🇭', tz:'Asia/Bangkok'},
+      {city:'Toronto', country:'Canadá', continent:'América', flag:'🇨🇦', tz:'America/Toronto'},
+      {city:'Ciudad del Cabo', country:'Sudáfrica', continent:'África', flag:'🇿🇦', tz:'Africa/Johannesburg'},
+      {city:'Dubái', country:'Emiratos Árabes Unidos', continent:'Asia', flag:'🇦🇪', tz:'Asia/Dubai'},
+      {city:'Seúl', country:'Corea del Sur', continent:'Asia', flag:'🇰🇷', tz:'Asia/Seoul'},
+      {city:'Atenas', country:'Grecia', continent:'Europa', flag:'🇬🇷', tz:'Europe/Athens'},
+      {city:'Lagos', country:'Nigeria', continent:'África', flag:'🇳🇬', tz:'Africa/Lagos'},
+      {city:'Santiago', country:'Chile', continent:'América', flag:'🇨🇱', tz:'America/Santiago'},
+      {city:'Yakarta', country:'Indonesia', continent:'Asia', flag:'🇮🇩', tz:'Asia/Jakarta'},
+      {city:'Auckland', country:'Nueva Zelanda', continent:'Oceanía', flag:'🇳🇿', tz:'Pacific/Auckland'}
+    ]
+  },
+  'futuro-compuesto':{ title:'Futuro compuesto (ir a + infinitivo)', sub:'Practica cada sección de la clase.', color:IND,
+    sections:[
+      { id:'f_ir', num:'03', title:'Gato: el verbo IR', type:'irgame',
+        hint:'Escribe la conjugación correcta para marcar la casilla. ¡Juega contra Claude!',
+        conjugations:[
+          {pronombre:'yo',       forma:'voy'},
+          {pronombre:'tú',       forma:'vas'},
+          {pronombre:'él',       forma:'va'},
+          {pronombre:'ella',     forma:'va'},
+          {pronombre:'usted',    forma:'va'},
+          {pronombre:'nosotros', forma:'vamos'},
+          {pronombre:'ustedes',  forma:'van'},
+          {pronombre:'ellos',    forma:'van'},
+          {pronombre:'ellas',    forma:'van'}
+        ]
+      },
+      { id:'f03', num:'04', title:'El verbo ir: completa las oraciones', type:'quiz',
+        quiz:[
+          {before:'Yo', verb:'ir', after:'al mercado.', tense:'acc', cue:'ir', answer:'voy', person:'yo'},
+          {before:'Tú', verb:'ir', after:'a la escuela.', tense:'acc', cue:'ir', answer:'vas', person:'tú'},
+          {before:'Ella', verb:'ir', after:'al médico.', tense:'acc', cue:'ir', answer:'va', person:'ella'},
+          {before:'Nosotros', verb:'ir', after:'al cine.', tense:'acc', cue:'ir', answer:'vamos', person:'nosotros'},
+          {before:'Ellos', verb:'ir', after:'a la playa.', tense:'acc', cue:'ir', answer:'van', person:'ellos'}
+        ]
+      },
+      { id:'f04', num:'04', title:'¿Qué es un infinitivo?', type:'modquiz',
+        hint:'Identifica el infinitivo correcto para completar la oración.',
+        items:[
+          {sentence:'Voy a _____ pizza esta noche.',
+           options:['comer','como','comiendo','comí'], answer:'comer', cue:'-er infinitivo'},
+          {sentence:'Ella va a _____ mañana.',
+           options:['viaja','viajando','viajar','viajó'], answer:'viajar', cue:'-ar infinitivo'},
+          {sentence:'Vamos a _____ una película.',
+           options:['ver','veo','viendo','vi'], answer:'ver', cue:'-er infinitivo'},
+          {sentence:'Van a _____ tarde.',
+           options:['llegan','llegando','llegaron','llegar'], answer:'llegar', cue:'-ar infinitivo'},
+          {sentence:'¿Vas a _____ en casa?',
+           options:['quedas','quedando','quedar','quedé'], answer:'quedar', cue:'-ar infinitivo'}
+        ]
+      },
+      { id:'f05', num:'05', title:'Del presente al futuro', type:'match',
+        hint:'Empareja cada pregunta del presente con su versión en futuro.',
+        pairs:[
+          {q:'¿Cómo está el clima?',      a:'¿Cómo va a estar el clima?'},
+          {q:'¿Hace calor?',              a:'¿Va a hacer calor?'},
+          {q:'¿A cuántos grados está?',   a:'¿A cuántos grados va a estar?'},
+          {q:'¿Qué hora es?',             a:'¿A qué hora va a ser?'},
+          {q:'¿Dónde estás?',             a:'¿Dónde vas a estar?'}
+        ]
+      },
+      { id:'f06', num:'06', title:'Marcadores temporales', type:'modquiz',
+        hint:'Elige el marcador temporal que mejor encaja en cada oración.',
+        items:[
+          {sentence:'_____ voy a estudiar español.',
+           options:['Mañana','Ayer','Ahora','Siempre'], answer:'Mañana', cue:'futuro próximo'},
+          {sentence:'_____ vamos a ir al cine.',
+           options:['Ayer','El fin de semana','Ahora mismo','Antes'], answer:'El fin de semana', cue:'futuro'},
+          {sentence:'Ella va a llamarme _____.',
+           options:['ayer','en un rato','nunca','antes'], answer:'en un rato', cue:'futuro cercano'},
+          {sentence:'Van a publicar los resultados _____.',
+           options:['ayer','pronto','antes','ya'], answer:'pronto', cue:'futuro'},
+          {sentence:'_____ voy a empezar el proyecto.',
+           options:['Ayer','La próxima semana','Antes de','Ya'], answer:'La próxima semana', cue:'futuro'},
+          {sentence:'Voy a desayunar _____, antes del trabajo.',
+           options:['en la noche','en la mañana','anoche','ayer'], answer:'en la mañana', cue:'parte del día'},
+          {sentence:'Vamos a cenar _____, a las nueve.',
+           options:['en la mañana','en la tarde','en la noche','ayer'], answer:'en la noche', cue:'parte del día'},
+          {sentence:'_____ voy a correr en el parque, muy temprano.',
+           options:['Anoche','Mañana en la mañana','Ayer en la tarde','Hace un rato'], answer:'Mañana en la mañana', cue:'día + parte del día'}
+        ]
+      },
+      { id:'f_chat', num:'💬', title:'Practica con Claude', type:'aichat',
+        hint:'Responde en español usando "ir + a + infinitivo". Claude te hace preguntas y corrige tu español.',
+        systemPrompt:`Eres un tutor de español amigable y paciente. Tu única misión es practicar la estructura "ir + a + infinitivo" (futuro próximo) con el estudiante mediante una conversación natural en español.
+
+REGLAS ESTRICTAS:
+- Habla SOLO en español, siempre.
+- Haz UNA sola pregunta corta por mensaje.
+- Cada pregunta debe provocar una respuesta con "ir + a + infinitivo". Ej: "¿Qué vas a cenar?" → "Voy a cenar pasta."
+- Si el estudiante usa la estructura correctamente, valídalo brevemente ("¡Perfecto!", "¡Muy bien!") y haz la siguiente pregunta relacionada.
+- Si comete un error gramatical, corrígelo con amabilidad mostrando la forma correcta y pide que lo repita. Ej: "Casi — di: 'Voy a cocinar.' ¿Vas a cocinar o a pedir comida?"
+- Mantén una conversación fluida y natural. Profundiza en las respuestas del estudiante: si dice "voy a cenar pasta", pregunta cómo, con quién, cuándo, etc.
+- Nunca salgas del tema. Si el estudiante escribe en inglés, respóndele en español y pídele que intente en español.
+- Después de exactamente 10 mensajes del estudiante, despídete usando "ir + a + infinitivo" con una excusa cotidiana. Ej: "¡Qué buena conversación! Me tengo que ir — mi familia llegó y voy a cenar con ellos. ¡Hasta pronto!"
+
+INICIO: Saluda con entusiasmo y haz la primera pregunta: "¿Qué vas a hacer después de tu lección de español?"`,
+        greeting:'¡Hola! Me da mucho gusto practicar contigo hoy. 😊 ¿Qué vas a hacer después de tu lección de español?'
+      },
+      { id:'f_vocab', num:'📋', title:'Vocabulario', type:'summary',
+        categories:[
+          { title:'Verbos cotidianos', color:'#e2a24c', filterable:true,
+            items:[
+              {es:'viajar',     en:'to travel',    end:'ar'},
+              {es:'comer',      en:'to eat',        end:'er'},
+              {es:'estudiar',   en:'to study',      end:'ar'},
+              {es:'trabajar',   en:'to work',       end:'ar'},
+              {es:'dormir',     en:'to sleep',      end:'ir'},
+              {es:'salir',      en:'to go out',     end:'ir'},
+              {es:'leer',       en:'to read',       end:'er'},
+              {es:'cocinar',    en:'to cook',       end:'ar'},
+              {es:'caminar',    en:'to walk',       end:'ar'},
+              {es:'hablar',     en:'to speak',      end:'ar'},
+              {es:'ver',        en:'to watch',      end:'er'},
+              {es:'escribir',   en:'to write',      end:'ir'},
+              {es:'ir (irreg.)',en:'to go',          end:'irr'}
+            ]
+          },
+          { title:'Marcadores temporales', color:'#67e8f9',
+            items:[
+              {es:'mañana',            en:'tomorrow'},
+              {es:'pasado mañana',     en:'the day after tomorrow'},
+              {es:'en tres días',      en:'in three days'},
+              {es:'la próxima semana', en:'next week'},
+              {es:'el próximo mes',    en:'next month'},
+              {es:'esta noche',        en:'tonight'},
+              {es:'esta tarde',        en:'this afternoon'},
+              {es:'pronto',            en:'soon'},
+              {es:'en un rato',        en:'in a little while'},
+              {es:'el fin de semana',  en:'the weekend'},
+              {es:'en la mañana',      en:'in the morning'},
+              {es:'en la tarde',       en:'in the afternoon'},
+              {es:'en la noche',       en:'at night'},
+              {es:'mañana en la mañana', en:'tomorrow morning'}
+            ]
+          }
+        ]
+      },
+      { id:'f07', num:'🎯', title:'Quiz', type:'quiz',
+        quiz:[
+          {before:'Mañana yo', verb:'ir', after:'a viajar.', tense:'acc', cue:'ir a + inf.', answer:'voy', person:'yo'},
+          {before:'Tú', verb:'ir', after:'a comer pizza.', tense:'acc', cue:'ir a + inf.', answer:'vas', person:'tú'},
+          {before:'Ella', verb:'ir', after:'a estudiar esta noche.', tense:'acc', cue:'ir a + inf.', answer:'va', person:'ella'},
+          {before:'Nosotros', verb:'ir', after:'a hablar con el profesor.', tense:'acc', cue:'ir a + inf.', answer:'vamos', person:'nosotros'},
+          {before:'Ellos', verb:'ir', after:'a llegar tarde.', tense:'acc', cue:'ir a + inf.', answer:'van', person:'ellos'},
+          {before:'Esta tarde tú', verb:'ir', after:'a leer un libro.', tense:'acc', cue:'ir a + inf.', answer:'vas', person:'tú'}
+        ]
+      }
+    ]
+  },
+  'articulos':{ title:'Artículos definidos e indefinidos', sub:'Practica cada sección de la clase.', color:IND,
+    sections:[
+      { id:'a01', num:'01', title:'El artículo definido (the)', type:'modquiz',
+        hint:'Elige el artículo definido correcto: el, la, los, las.',
+        items:[
+          {sentence:'_____ libro es rojo.',
+           options:['el','la','los','las'], answer:'el', cue:'masc. sing.'},
+          {sentence:'_____ casa es grande.',
+           options:['el','la','los','las'], answer:'la', cue:'fem. sing.'},
+          {sentence:'_____ libros son nuevos.',
+           options:['el','la','los','las'], answer:'los', cue:'masc. pl.'},
+          {sentence:'_____ casas son bonitas.',
+           options:['el','la','los','las'], answer:'las', cue:'fem. pl.'},
+          {sentence:'_____ perro es pequeño.',
+           options:['la','el','los','las'], answer:'el', cue:'masc. sing.'},
+          {sentence:'_____ flores son amarillas.',
+           options:['el','los','la','las'], answer:'las', cue:'fem. pl.'},
+          {sentence:'_____ coche es azul.',
+           options:['la','los','el','las'], answer:'el', cue:'masc. sing.'},
+          {sentence:'_____ silla es vieja.',
+           options:['el','los','las','la'], answer:'la', cue:'fem. sing.'}
+        ]
+      },
+      { id:'a02', num:'02', title:'El artículo indefinido (a / some)', type:'modquiz',
+        hint:'Elige el artículo indefinido correcto: un, una, unos, unas.',
+        items:[
+          {sentence:'Es _____ perro grande.',
+           options:['un','una','unos','unas'], answer:'un', cue:'masc. sing.'},
+          {sentence:'Es _____ manzana roja.',
+           options:['un','una','unos','unas'], answer:'una', cue:'fem. sing.'},
+          {sentence:'Son _____ zapatos nuevos.',
+           options:['un','una','unos','unas'], answer:'unos', cue:'masc. pl.'},
+          {sentence:'Son _____ flores bonitas.',
+           options:['un','una','unos','unas'], answer:'unas', cue:'fem. pl.'},
+          {sentence:'Es _____ coche azul.',
+           options:['una','un','unos','unas'], answer:'un', cue:'masc. sing.'},
+          {sentence:'Es _____ silla pequeña.',
+           options:['un','unos','una','unas'], answer:'una', cue:'fem. sing.'},
+          {sentence:'Son _____ libros viejos.',
+           options:['una','un','unas','unos'], answer:'unos', cue:'masc. pl.'},
+          {sentence:'Son _____ casas grandes.',
+           options:['unos','un','una','unas'], answer:'unas', cue:'fem. pl.'}
+        ]
+      },
+      { id:'a03', num:'03', title:'Empareja el sustantivo con su artículo', type:'match',
+        hint:'Une cada sustantivo con el artículo definido que le corresponde.',
+        pairs:[
+          {q:'🐕 perro',       a:'el (masc. singular)'},
+          {q:'🏠 casa',        a:'la (fem. singular)'},
+          {q:'👟 zapatos',     a:'los (masc. plural)'},
+          {q:'🌸 flores',      a:'las (fem. plural)'},
+          {q:'📗 libro',       a:'el (masc. singular)'}
+        ]
+      },
+      { id:'a04', num:'04', title:'Concordancia del adjetivo', type:'modquiz',
+        hint:'El adjetivo concuerda en género y número con el sustantivo. Elige la forma correcta.',
+        items:[
+          {sentence:'el coche _____',
+           options:['rojo','roja','rojos','rojas'], answer:'rojo', cue:'masc. sing.'},
+          {sentence:'la casa _____',
+           options:['blanco','blanca','blancos','blancas'], answer:'blanca', cue:'fem. sing.'},
+          {sentence:'los libros _____',
+           options:['nuevo','nueva','nuevos','nuevas'], answer:'nuevos', cue:'masc. pl.'},
+          {sentence:'las flores _____',
+           options:['bonito','bonita','bonitos','bonitas'], answer:'bonitas', cue:'fem. pl.'},
+          {sentence:'una niña _____',
+           options:['alto','alta','altos','altas'], answer:'alta', cue:'fem. sing.'},
+          {sentence:'unos amigos _____',
+           options:['simpático','simpática','simpáticos','simpáticas'], answer:'simpáticos', cue:'masc. pl.'},
+          {sentence:'el gato _____',
+           options:['negro','negra','negros','negras'], answer:'negro', cue:'masc. sing.'},
+          {sentence:'las plantas _____',
+           options:['pequeño','pequeña','pequeños','pequeñas'], answer:'pequeñas', cue:'fem. pl.'}
+        ]
+      },
+      { id:'a05', num:'05', title:'¿Definido o indefinido?', type:'artpick',
+        hint:'Observa la imagen. El objeto resaltado y brillante indica cuál es. Elige la frase correcta.',
+        rounds:[
+          { scene:'balls',
+            objects:[{ic:'🔴',label:'roja'},{ic:'🟢',label:'verde'},{ic:'🟡',label:'amarilla'}],
+            highlight:1, noun:'pelota', gen:'f',
+            correct:'La pelota verde',
+            options:['La pelota verde','Una pelota verde','Las pelotas verdes','Unas pelotas verdes'],
+            why:'Señalamos UNA pelota específica (la verde, resaltada) → artículo definido singular femenino.'},
+          { scene:'cars',
+            objects:[{ic:'🚗',label:'rojo'},{ic:'🚙',label:'azul'}],
+            highlight:1, noun:'coche', gen:'m',
+            correct:'El coche azul',
+            options:['El coche azul','Un coche azul','Los coches azules','Unos coches azules'],
+            why:'Es UN coche específico (el azul, resaltado) → artículo definido singular masculino.'},
+          { scene:'apples-all',
+            objects:[{ic:'🍎',label:'1'},{ic:'🍎',label:'2'},{ic:'🍎',label:'3'}],
+            highlightAll:true, noun:'manzana', gen:'f', plural:true,
+            correct:'Las manzanas rojas',
+            options:['Las manzanas rojas','Unas manzanas rojas','La manzana roja','Una manzana roja'],
+            why:'Están resaltadas TODAS y son conocidas → artículo definido plural femenino.'},
+          { scene:'books-one-of-many',
+            objects:[{ic:'📕',label:'1'},{ic:'📗',label:'2'},{ic:'📘',label:'3'}],
+            highlight:null, noun:'libro', gen:'m', indef:true,
+            correct:'Un libro',
+            options:['Un libro','El libro','Unos libros','Los libros'],
+            why:'No señalamos ninguno en particular, es uno cualquiera del grupo → artículo indefinido singular masculino.'},
+          { scene:'flowers-some',
+            objects:[{ic:'🌷',label:'1'},{ic:'🌷',label:'2'},{ic:'🌼',label:'3'},{ic:'🌸',label:'4'}],
+            highlightSome:[0,1], noun:'flor', gen:'f', plural:true, indef:true,
+            correct:'Unas flores',
+            options:['Unas flores','Las flores','Una flor','La flor'],
+            why:'Señalamos ALGUNAS sin decir cuáles exactamente → artículo indefinido plural femenino.'},
+          { scene:'dog',
+            objects:[{ic:'🐕',label:'único'}],
+            highlight:0, noun:'perro', gen:'m',
+            correct:'El perro',
+            options:['El perro','Un perro','Los perros','Unos perros'],
+            why:'Hay UN solo perro y lo señalamos → artículo definido singular masculino.'}
+        ]
+      },
+      { id:'a06', num:'06', title:'Practica con tu compañero', type:'speaking',
+        hint:'Responde en español usando artículo + sustantivo + adjetivo. Habla en voz alta.',
+        questions:[
+          {q:'Describe un objeto de la clase.', prompt:'La mesa es grande. / El libro es azul.'},
+          {q:'Describe algo que ves usando un artículo indefinido.', prompt:'Es un/una… / Son unos/unas…'},
+          {q:'Menciona dos cosas plurales.', prompt:'Los/Las… son…'},
+          {q:'Describe a una persona.', prompt:'El/La… es…'}
+        ]
+      },
+      { id:'a_voc', num:'07', title:'Vocabulario de la lección', type:'summary',
+        categories:[
+          { title:'Artículos definidos', icon:'🔵', color:'#60a5fa', label:'DEF', short:'D',
+            items:[
+              {ic:'👦',es:'el',en:'the (m. sing.)'},{ic:'👧',es:'la',en:'the (f. sing.)'},
+              {ic:'👦👦',es:'los',en:'the (m. pl.)'},{ic:'👧👧',es:'las',en:'the (f. pl.)'}
+            ]
+          },
+          { title:'Artículos indefinidos', icon:'🟡', color:'#e2a24c', label:'INDEF', short:'I',
+            items:[
+              {ic:'👦',es:'un',en:'a (m. sing.)'},{ic:'👧',es:'una',en:'a (f. sing.)'},
+              {ic:'👦👦',es:'unos',en:'some (m. pl.)'},{ic:'👧👧',es:'unas',en:'some (f. pl.)'}
+            ]
+          },
+          { title:'Sustantivos', icon:'📦', color:'#a78bfa', label:'SUST', short:'N',
+            filterable:true, filterType:'gen',
+            items:[
+              {ic:'🐕',es:'el perro',en:'the dog',gen:'m'},{ic:'🐱',es:'la gata',en:'the cat (f)',gen:'f'},
+              {ic:'📗',es:'el libro',en:'the book',gen:'m'},{ic:'🍎',es:'la manzana',en:'the apple',gen:'f'},
+              {ic:'👦',es:'el niño',en:'the boy',gen:'m'},{ic:'🌸',es:'la flor',en:'the flower',gen:'f'},
+              {ic:'🧑‍🏫',es:'el maestro',en:'the teacher (m)',gen:'m'},{ic:'🪑',es:'la silla',en:'the chair',gen:'f'},
+              {ic:'🚗',es:'el coche',en:'the car',gen:'m'},{ic:'🪟',es:'la ventana',en:'the window',gen:'f'},
+              {ic:'🏥',es:'el hospital',en:'the hospital',gen:'m'},{ic:'🌿',es:'la planta',en:'the plant',gen:'f'}
+            ]
+          },
+          { title:'Adjetivos', icon:'🎨', color:'#f472b6', label:'ADJ', short:'Adj',
+            items:[
+              {ic:'📏',es:'grande/s',en:'big'},{ic:'✨',es:'bonito/a',en:'pretty'},
+              {ic:'🆕',es:'nuevo/a',en:'new'},{ic:'🔴',es:'rojo/a',en:'red'},
+              {ic:'🔵',es:'azul/es',en:'blue'},{ic:'😊',es:'simpático/a',en:'nice'}
+            ]
+          }
+        ]
+      },
+      { id:'a_quiz', num:'🎯', title:'Quiz', type:'quiz',
+        quiz:[
+          {before:'', verb:'el/la/los/las', after:'libro (definido)', tense:'acc', cue:'definido', answer:'el', person:'masc. sing.'},
+          {before:'', verb:'el/la/los/las', after:'casa (definido)', tense:'acc', cue:'definido', answer:'la', person:'fem. sing.'},
+          {before:'', verb:'el/la/los/las', after:'coches (definido)', tense:'acc', cue:'definido', answer:'los', person:'masc. pl.'},
+          {before:'', verb:'el/la/los/las', after:'flores (definido)', tense:'acc', cue:'definido', answer:'las', person:'fem. pl.'},
+          {before:'', verb:'un/una/unos/unas', after:'perro (indefinido)', tense:'acc', cue:'indefinido', answer:'un', person:'masc. sing.'},
+          {before:'', verb:'un/una/unos/unas', after:'manzana (indefinido)', tense:'acc', cue:'indefinido', answer:'una', person:'fem. sing.'},
+          {before:'', verb:'un/una/unos/unas', after:'zapatos (indefinido)', tense:'acc', cue:'indefinido', answer:'unos', person:'masc. pl.'},
+          {before:'', verb:'un/una/unos/unas', after:'sillas (indefinido)', tense:'acc', cue:'indefinido', answer:'unas', person:'fem. pl.'},
+          {before:'el coche', verb:'rojo', after:'(concordancia)', tense:'acc', cue:'adjetivo', answer:'rojo', person:'masc. sing.'},
+          {before:'la casa', verb:'blanco', after:'(concordancia)', tense:'acc', cue:'adjetivo', answer:'blanca', person:'fem. sing.'},
+          {before:'los libros', verb:'nuevo', after:'(concordancia)', tense:'acc', cue:'adjetivo', answer:'nuevos', person:'masc. pl.'},
+          {before:'las flores', verb:'bonito', after:'(concordancia)', tense:'acc', cue:'adjetivo', answer:'bonitas', person:'fem. pl.'}
+        ]
+      }
+    ]
+  },
+  'genero-numero':{ title:'Género y número (hay)', sub:'Practica "hay" para expresar existencia.', color:IND, quiz:[
+    {before:'En la clase', verb:'haber', after:'veinte estudiantes.', tense:'acc', cue:'hay', answer:'hay', person:'fijo'},
+    {before:'', verb:'haber', after:'una tienda en la esquina.', tense:'acc', cue:'hay', answer:'hay', person:'fijo'},
+    {before:'¿', verb:'haber', after:'leche en el refrigerador?', tense:'acc', cue:'hay', answer:'hay', person:'fijo'}
+  ]},
+  'gustar':{ title:'Gustar (+ sustantivo y + verbo)', sub:'Usa gusta (singular) o gustan (plural).', color:IND, quiz:[
+    {before:'Me', verb:'gustar', after:'el café.', tense:'acc', cue:'singular', answer:'gusta', person:'sing.'},
+    {before:'Me', verb:'gustar', after:'los perros.', tense:'acc', cue:'plural', answer:'gustan', person:'pl.'},
+    {before:'Me', verb:'gustar', after:'bailar.', tense:'acc', cue:'+ infinitivo', answer:'gusta', person:'inf.'}
+  ]},
+  'verbos-como-gustar':{ title:'Verbos similares a gustar', sub:'Encantar, molestar, interesar… concuerdan con la cosa.', color:IND, quiz:[
+    {before:'Me', verb:'encantar', after:'la música.', tense:'acc', cue:'singular', answer:'encanta', person:'sing.'},
+    {before:'Nos', verb:'molestar', after:'los ruidos fuertes.', tense:'acc', cue:'plural', answer:'molestan', person:'pl.'},
+    {before:'Le', verb:'interesar', after:'el arte.', tense:'acc', cue:'singular', answer:'interesa', person:'sing.'}
+  ]},
+  'presente-simple':{ title:'Presente simple', sub:'Conjuga en presente de indicativo.', color:IND, quiz:[
+    {before:'Yo', verb:'vivir', after:'en Madrid.', tense:'acc', cue:'presente', answer:'vivo', person:'yo'},
+    {before:'Nosotros', verb:'hablar', after:'español.', tense:'acc', cue:'presente', answer:'hablamos', person:'nosotros'},
+    {before:'Ella', verb:'beber', after:'mucho café.', tense:'acc', cue:'presente', answer:'bebe', person:'ella'}
+  ]},
+  'reflexivos':{ title:'Verbos reflexivos', sub:'No olvides el pronombre reflexivo (me, te, se…).', color:IND, quiz:[
+    {before:'Yo', verb:'despertarse', after:'a las siete.', tense:'acc', cue:'reflexivo', answer:'me despierto', person:'yo'},
+    {before:'Nosotros', verb:'levantarse', after:'temprano.', tense:'acc', cue:'reflexivo', answer:'nos levantamos', person:'nosotros'},
+    {before:'Ella', verb:'peinarse', after:'el pelo.', tense:'acc', cue:'reflexivo', answer:'se peina', person:'ella'}
+  ]},
+  'reciprocos':{ title:'Verbos recíprocos', sub:'Acciones mutuas: el uno al otro.', color:IND, quiz:[
+    {before:'Ana y Luis', verb:'verse', after:'todos los días.', tense:'acc', cue:'recíproco', answer:'se ven', person:'ellos'},
+    {before:'Nosotros', verb:'escribirse', after:'mensajes.', tense:'acc', cue:'recíproco', answer:'nos escribimos', person:'nosotros'},
+    {before:'Ellos', verb:'quererse', after:'mucho.', tense:'acc', cue:'recíproco', answer:'se quieren', person:'ellos'}
+  ]},
+  'presente-continuo':{ title:'Presente continuo (estar + gerundio)', sub:'Conjuga "estar" para la acción en curso.', color:IND, quiz:[
+    {before:'Yo', verb:'estar', after:'estudiando.', tense:'acc', cue:'estar + -ndo', answer:'estoy', person:'yo'},
+    {before:'Ellos', verb:'estar', after:'comiendo.', tense:'acc', cue:'estar + -ndo', answer:'están', person:'ellos'},
+    {before:'Nosotros', verb:'estar', after:'trabajando.', tense:'acc', cue:'estar + -ndo', answer:'estamos', person:'nosotros'}
+  ]},
+  'imperfecto':{ title:'Pasado imperfecto', sub:'Acciones habituales del pasado.', color:IND, quiz:[
+    {before:'Cuando era niño, yo', verb:'jugar', after:'en el parque.', tense:'past', cue:'imperfecto', answer:'jugaba', person:'yo'},
+    {before:'Antes nosotros', verb:'viajar', after:'mucho.', tense:'past', cue:'imperfecto', answer:'viajábamos', person:'nosotros'},
+    {before:'Ellos', verb:'vivir', after:'en una casa grande.', tense:'past', cue:'imperfecto', answer:'vivían', person:'ellos'}
+  ]},
+  'preterito':{ title:'Pretérito (indefinido)', sub:'Acciones terminadas en un momento del pasado.', color:IND, quiz:[
+    {before:'Ayer yo', verb:'comer', after:'paella.', tense:'past', cue:'pretérito', answer:'comí', person:'yo'},
+    {before:'El año pasado ellos', verb:'viajar', after:'a España.', tense:'past', cue:'pretérito', answer:'viajaron', person:'ellos'},
+    {before:'Anoche nosotros', verb:'ver', after:'una película.', tense:'past', cue:'pretérito', answer:'vimos', person:'nosotros'}
+  ]},
+  'presente-perfecto':{ title:'Presente perfecto', sub:'haber (presente) + participio.', color:IND, quiz:[
+    {before:'Hoy yo', verb:'trabajar', after:'mucho.', tense:'pres', cue:'perfecto', answer:'he trabajado', person:'yo'},
+    {before:'¿Alguna vez tú', verb:'comer', after:'sushi?', tense:'pres', cue:'perfecto', answer:'has comido', person:'tú'},
+    {before:'Nosotros ya', verb:'hacer', after:'la tarea.', tense:'pres', cue:'perfecto', answer:'hemos hecho', person:'nosotros'}
+  ]},
+  'imperativo-afirmativo':{ title:'Imperativo afirmativo', sub:'Da órdenes o instrucciones (tú).', color:IND, quiz:[
+    {before:'', verb:'abrir', after:'la puerta, por favor.', tense:'acc', cue:'imperativo +', answer:'abre', person:'tú'},
+    {before:'', verb:'hablar', after:'más despacio.', tense:'acc', cue:'imperativo +', answer:'habla', person:'tú'},
+    {before:'', verb:'venir', after:'aquí.', tense:'acc', cue:'irregular', answer:'ven', person:'tú'}
+  ]},
+  'imperativo-negativo':{ title:'Imperativo negativo', sub:'Prohíbe una acción (usa el subjuntivo).', color:IND, quiz:[
+    {before:'No', verb:'abrir', after:'la puerta.', tense:'acc', cue:'imperativo −', answer:'abras', person:'tú'},
+    {before:'No', verb:'hablar', after:'tan rápido.', tense:'acc', cue:'imperativo −', answer:'hables', person:'tú'},
+    {before:'No', verb:'hacer', after:'eso.', tense:'acc', cue:'imperativo −', answer:'hagas', person:'tú'}
+  ]},
+
+  /* ══════════ SUBJUNTIVO ══════════ */
+  'triggers-subjuntivo':{ title:'Triggers de subjuntivo', sub:'Expresiones que exigen subjuntivo.', color:SUB, quiz:[
+    {before:'Quiero que tú', verb:'estar', after:'aquí.', tense:'acc', cue:'subjuntivo', answer:'estés', person:'tú'},
+    {before:'Es necesario que nosotros', verb:'estudiar', after:'.', tense:'acc', cue:'subjuntivo', answer:'estudiemos', person:'nosotros'},
+    {before:'Ojalá', verb:'hacer', after:'sol mañana.', tense:'acc', cue:'subjuntivo', answer:'haga', person:'él'}
+  ]},
+  'subjuntivo-presente':{ title:'Subjuntivo presente', sub:'Escribe el verbo en presente de subjuntivo.', color:SUB, quiz:[
+    {before:'Espero que tú', verb:'estar', after:'bien.', tense:'acc', cue:'subjuntivo', answer:'estés', person:'tú'},
+    {before:'Quiero que ella', verb:'venir', after:'.', tense:'acc', cue:'subjuntivo', answer:'venga', person:'ella'},
+    {before:'Es importante que ellos', verb:'practicar', after:'.', tense:'acc', cue:'subjuntivo', answer:'practiquen', person:'ellos'}
+  ]},
+  'condicional':{ title:'Condicional', sub:'Lo que pasaría (terminación -ría).', color:SUB, quiz:[
+    {before:'Yo', verb:'viajar', after:'a España si pudiera.', tense:'acc', cue:'condicional', answer:'viajaría', person:'yo'},
+    {before:'¿Tú', verb:'hacer', after:'eso?', tense:'acc', cue:'irregular', answer:'harías', person:'tú'},
+    {before:'Nosotros', verb:'estudiar', after:'más.', tense:'acc', cue:'condicional', answer:'estudiaríamos', person:'nosotros'}
+  ]},
+  'subjuntivo-pasado':{ title:'Subjuntivo pasado', sub:'Imperfecto de subjuntivo (terminación -ra).', color:SUB, quiz:[
+    {before:'Quería que tú', verb:'estar', after:'aquí.', tense:'acc', cue:'subj. pasado', answer:'estuvieras', person:'tú'},
+    {before:'Ojalá yo', verb:'tener', after:'más tiempo.', tense:'acc', cue:'subj. pasado', answer:'tuviera', person:'yo'},
+    {before:'Esperaba que ellos', verb:'venir', after:'.', tense:'acc', cue:'subj. pasado', answer:'vinieran', person:'ellos'}
+  ]},
+  'condicional-subjuntivo-pasado':{ title:'Condicional + subjuntivo pasado', sub:'Oraciones con "si": si + subjuntivo pasado, condicional.', color:SUB, quiz:[
+    {before:'Si yo', verb:'tener', after:'dinero, viajaría.', tense:'acc', cue:'si + subj.', answer:'tuviera', person:'yo'},
+    {before:'Si tú', verb:'estudiar', after:'más, aprobarías.', tense:'acc', cue:'si + subj.', answer:'estudiaras', person:'tú'},
+    {before:'Si nosotros', verb:'tener', after:'tiempo, iríamos.', tense:'acc', cue:'si + subj.', answer:'tuviéramos', person:'nosotros'}
+  ]},
+  'dos-conjugaciones-subjuntivo-pasado':{ title:'Las dos conjugaciones (-ra / -se)', sub:'El subjuntivo pasado tiene dos formas equivalentes.', color:SUB, quiz:[
+    {before:'Forma -ra: Si yo', verb:'ser', after:'rico…', tense:'acc', cue:'forma -ra', answer:'fuera', person:'yo'},
+    {before:'Forma -se: Si yo', verb:'ser', after:'rico…', tense:'acc', cue:'forma -se', answer:'fuese', person:'yo'},
+    {before:'Forma -ra: Quería que tú', verb:'venir', after:'.', tense:'acc', cue:'forma -ra', answer:'vinieras', person:'tú'}
+  ]},
+  'subjuntivo-pasado-imperfecto':{ title:'Subjuntivo del pasado imperfecto', sub:'Imperfecto de subjuntivo en contexto.', color:SUB, quiz:[
+    {before:'Quería que tú', verb:'estudiar', after:'más.', tense:'acc', cue:'subj. imperfecto', answer:'estudiaras', person:'tú'},
+    {before:'Ojalá', verb:'hacer', after:'sol ayer.', tense:'acc', cue:'subj. imperfecto', answer:'hiciera', person:'él'},
+    {before:'Esperaba que nosotros', verb:'llegar', after:'a tiempo.', tense:'acc', cue:'subj. imperfecto', answer:'llegáramos', person:'nosotros'}
+  ]},
+  'subjuntivo-pasado-perfecto':{ title:'Subjuntivo del pasado perfecto', sub:'Pluscuamperfecto de subjuntivo: hubiera + participio.', color:SUB, quiz:[
+    {before:'Ojalá tú', verb:'haber', after:'estudiado.', tense:'acc', cue:'hubiera + part.', answer:'hubieras', person:'tú'},
+    {before:'Si yo', verb:'haber', after:'sabido…', tense:'acc', cue:'hubiera + part.', answer:'hubiera', person:'yo'},
+    {before:'Esperaba que ellos', verb:'haber', after:'llegado.', tense:'acc', cue:'hubiera + part.', answer:'hubieran', person:'ellos'}
+  ]},
+
+  /* ══ ACTIVIDAD ESPECIAL: ciudades del mundo ══ */
+};
+
+/* ══ MOTOR ══ */
+function spanishTimeHM(h,m){
+  const parts=['de la madrugada','de la mañana','de la tarde','de la noche'];
+  const part=h<6?parts[0]:h<12?parts[1]:h<20?parts[2]:parts[3];
+  let h12=h%12; if(h12===0)h12=12;
+  const nums=['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce'];
+  const base=h12===1?'Es la una':'Son las '+(h12<=12?nums[h12]:'?');
+  const min=m===0?' en punto':m===15?' y cuarto':m===30?' y media':(m<10?' y cero'+m:' y '+m);
+  return base+min+' '+part;
+}
+const app=document.getElementById('app');
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+let BACK_TO='';
+let cycleTimer=null;
+function setBack(t){const b=document.getElementById('back');if(b)b.textContent=t;}
+
+/* menú principal */
+function landingHTML(){
+  const prog = LQEProgress.get();          // estado del alumno
+  const order = LQEProgress.order();        // orden lineal de temas con ejercicios
+  const branches=MENU.filter(br=>br.key!=='pro').map((br,bi)=>{
+    const rows=br.topics.map((t,i)=>{
+      const avail=!!EXERCISES[t.id];
+      // temas sin ejercicios → "Próximamente" (como antes)
+      if(!avail){
+        return `<div class="topic soon">`
+          +`<span class="tnum">${String(i+1).padStart(2,'0')}</span>`
+          +`<span class="tname">${t.n}</span>`
+          +`<span class="tstate">Próximamente</span></div>`;
+      }
+      // temas con ejercicios → aplicar estado de desbloqueo
+      const st = LQEProgress.stateOf(t.id, prog, order);   // 'done' | 'unlocked' | 'locked'
+      let stateHtml, cls, clickable;
+      if(st==='done'){
+        cls='done'; clickable=true;
+        stateHtml=`<span class="tstate">✓ Completado</span>`;
+      } else if(st==='unlocked'){
+        cls='unlocked'; clickable=true;
+        stateHtml=`<span class="tstate">Practicar →</span>`;
+      } else {
+        cls='locked'; clickable=false;
+        const reqName = LQEProgress.reqName(t.id, order);
+        stateHtml=`<span class="tstate"><span class="lock-ico">🔒</span> Bloqueado</span>`
+          +`<span class="lock-req">Completa antes: ${reqName}</span>`;
+      }
+      return `<div class="topic ${cls}" ${clickable?`data-id="${t.id}" tabindex="0" role="button"`:''}>`
+        +`<span class="tnum">${String(i+1).padStart(2,'0')}</span>`
+        +`<span class="tname">${t.n}</span>`
+        +stateHtml+`</div>`;
+    }).join('');
+    // conteo: completados / total-con-ejercicios de esta rama
+    const withEx = br.topics.filter(t=>EXERCISES[t.id]);
+    const doneCount = withEx.filter(t=>(prog.completed||[]).includes(t.id)).length;
+    return `<div class="branch ${bi===0?'open':''}" style="--bc:${br.color}">`
+      +`<div class="branch-head" data-b="${bi}" role="button" aria-expanded="${bi===0}">`
+        +`<span class="bi">${br.icon}</span>`
+        +`<span class="bt"><span class="bname">${br.label}</span><span class="bblurb">${br.blurb}</span></span>`
+        +`<span class="bcount">${doneCount}/${withEx.length||br.topics.length}</span><span class="chev">▾</span></div>`
+      +`<div class="branch-body">${rows||'<div class="topic soon"><span class="tnum">–</span><span class="tname">En construcción</span><span class="tstate">Próximamente</span></div>'}</div></div>`;
+  }).join('');
+  // barra de progreso global
+  const totalEx = order.length;
+  const doneAll = (prog.completed||[]).filter(id=>order.includes(id)).length;
+  const pct = totalEx? Math.round(doneAll/totalEx*100) : 0;
+  const nameLine = prog.name ? `Progreso de ${esc(prog.name)}` : 'Tu progreso';
+  const teacherBanner = LQEProgress.isTeacher()
+    ? `<div style="max-width:640px;margin:0 auto 16px;background:rgba(167,139,250,.12);
+        border:1px solid rgba(167,139,250,.4);border-radius:12px;padding:11px 16px;
+        display:flex;align-items:center;gap:10px;font-size:14px;color:#c9b8ff">
+        <span style="font-size:18px">👁️</span>
+        <span><b style="font-family:'Bricolage Grotesque'">Modo maestro activo</b> — ves todos los temas desbloqueados. Los estudiantes NO ven esto.</span>
+        <a href="?maestro=off" style="margin-left:auto;color:#c9b8ff;font-family:'Space Mono';font-size:12px;white-space:nowrap">Salir →</a>
+      </div>`
+    : '';
+  const progHtml = `<div class="lqe-prog-wrap">
+    <div class="lqe-prog-top">
+      <span class="lqe-prog-label">${nameLine}</span>
+      <span class="lqe-prog-pct">${pct}%</span>
+    </div>
+    <div class="lqe-prog-track"><div class="lqe-prog-fill" style="width:${pct}%"></div></div>
+    <div class="lqe-prog-name">${doneAll} de ${totalEx} temas completados</div>
+  </div>`;
+  return `<div class="landing wrap">
+    ${teacherBanner}
+    <div class="monogram">LQE</div>
+    <h1 class="land-title">Práctica de <em>español</em></h1>
+    <p class="land-tag">Elige un tema y practica. Escribe la respuesta, compruébala y, si te atoras, puedes ver la solución.</p>
+    <div class="land-demo"><span class="verb"><span class="v-stem">aprend</span><span class="v-end acc" id="cycle">emos</span></span></div>
+    ${progHtml}
+    ${(function(){
+      const streak=LQEProgress.getStreak();
+      const cefr=LQEProgress.cefrLevel(prog, order);
+      const levels=['A1','A2','B1','B2'];
+      const currentIdx=levels.indexOf(cefr.level.split('-')[0]);
+      const fillPct=Math.min(100, Math.max(0, (currentIdx/3)*100 + cefr.pct/3));
+      const indDone=(prog.completed||[]).length;
+      const streakHtml=`
+        <div class="lqe-stats-row">
+          <div class="lqe-stat-card">
+            <div class="lqe-stat-icon">🔥</div>
+            <div class="lqe-stat-num">${streak.days||0}</div>
+            <div class="lqe-stat-label">${streak.days===1?'day streak':'days streak'}</div>
+          </div>
+          <div class="lqe-stat-card">
+            <div class="lqe-stat-icon">📊</div>
+            <div class="lqe-level-badge" style="background:${cefr.color}22;color:${cefr.color};border:2px solid ${cefr.color}">${cefr.level}</div>
+            <div class="lqe-level-sub">${cefr.label}</div>
+          </div>
+          <div class="lqe-stat-card">
+            <div class="lqe-stat-icon">⭐</div>
+            <div class="lqe-stat-num">${doneAll}</div>
+            <div class="lqe-stat-label">topics completed</div>
+          </div>
+        </div>`;
+      const mapHtml=`
+        <div class="lqe-level-map">
+          <div class="lqe-lvl-line"><div class="lqe-lvl-line-fill" style="width:${fillPct}%"></div></div>
+          ${levels.map((lv,i)=>{
+            const isCurrent=cefr.level.includes(lv);
+            const isPast=i<currentIdx;
+            return `<div class="lqe-lvl-node">
+              <div class="lqe-lvl-dot ${isPast?'done':isCurrent?'active':''}">${isPast?'✓':lv}</div>
+              <div class="lqe-lvl-label ${isCurrent?'active':''}">${lv}</div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      const certHtml=doneAll>=4?`<button class="lqe-cert-btn" onclick="lqeShowCert()">🎓 Download your progress certificate</button>`:'';
+      return streakHtml+mapHtml+certHtml;
+    })()}
+  </div>
+  <div class="wrap"><div class="mainmenu">${branches}</div>
+  <div class="land-note">Portal de estudiantes · los temas se desbloquean al completar el anterior</div></div>
+  <footer class="wrap"><p>LQE · Estudiantes</p></footer>`;
+}
+function initLanding(){
+  document.body.classList.remove('in-topic','show-back');
+  document.documentElement.style.setProperty('--accent','#e2a24c');
+  app.innerHTML=landingHTML();
+  window.scrollTo(0,0);
+  app.querySelectorAll('.branch-head').forEach(h=>h.addEventListener('click',()=>{
+    const br=h.parentNode, wasOpen=br.classList.contains('open');
+    app.querySelectorAll('.branch').forEach(x=>{x.classList.remove('open');const hd=x.querySelector('.branch-head');if(hd)hd.setAttribute('aria-expanded','false');});
+    if(!wasOpen){br.classList.add('open');h.setAttribute('aria-expanded','true');}
+  }));
+  app.querySelectorAll('.topic[data-id]').forEach(t=>{
+    const go=()=>location.hash='#/'+t.dataset.id;
+    t.addEventListener('click',go);
+    t.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+  });
+  if(cycleTimer){clearInterval(cycleTimer);cycleTimer=null;}
+  const cyc=document.getElementById('cycle');
+  if(cyc && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+    const ends=['o','es','e','emos','ía','íamos','í','en'];let i=0;
+    cycleTimer=setInterval(()=>{i=(i+1)%ends.length;cyc.textContent=ends[i];},1500);
+  }
+}
+
+/* vista de práctica */
+function cityHTML(ex){
+  return `<div class="phero wrap"><div class="eyebrow">Actividad de práctica</div><h1>${esc(ex.title)}</h1><p>${esc(ex.sub)}</p></div>
+  <section class="les wrap"><hr class="divider">
+  <div class="city-card" id="cityCard">
+    <div class="city-top"><span class="city-flag" id="cFlag">🌍</span><div class="city-name" id="cName">—</div></div>
+    <div class="city-hint">Busca en internet y responde en español. Puedes revelar la hora y la ubicación para verificar.</div>
+    <div class="cq"><div class="cq-q"><span class="cq-n">1</span>¿Qué hora es?</div><input id="cq1" placeholder="Son las… / Es la una…"><div class="cq-reveal"><button class="reveal" data-r="time">Ver hora local →</button><span class="ans" id="ans-time"></span></div></div>
+    <div class="cq"><div class="cq-q"><span class="cq-n">2</span>¿Cómo está el clima?</div><input id="cq2" placeholder="Está soleado. / Hace frío."></div>
+    <div class="cq"><div class="cq-q"><span class="cq-n">3</span>¿A cuántos grados está?</div><input id="cq3" placeholder="Está a __ grados."></div>
+    <div class="cq"><div class="cq-q"><span class="cq-n">4</span>¿Dónde está?</div><input id="cq4" placeholder="Está en __, en __."><div class="cq-reveal"><button class="reveal" data-r="loc">Ver ubicación →</button><span class="ans" id="ans-loc"></span></div></div>
+    <button class="city-next" id="cityNext">Nueva ciudad →</button><span class="city-count" id="cityCount"></span>
+  </div>
+  </section>
+  <footer class="wrap"><p><button class="flink" onclick="location.hash=''">← Volver al menú</button></p></footer>`;
+}
+function initCity(ex){
+  document.documentElement.style.setProperty('--accent',ex.color||'#e2a24c');
+  document.body.classList.add('in-topic','show-back');
+  BACK_TO=''; setBack('← Volver al menú');
+  app.innerHTML=cityHTML(ex);
+  window.scrollTo(0,0);
+  const cities=ex.cities; let count=0;
+  const pick=()=>{
+    const c=cities[Math.floor(Math.random()*cities.length)];
+    document.getElementById('cFlag').textContent=c.flag;
+    document.getElementById('cName').textContent=c.city;
+    ['cq1','cq2','cq3','cq4'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.querySelectorAll('.ans').forEach(a=>{a.classList.remove('show');a.textContent='';});
+    document.getElementById('cityCard').dataset.tz=c.tz;
+    document.getElementById('cityCard').dataset.loc='Está en '+c.country+', en '+c.continent+'.';
+    count++; document.getElementById('cityCount').textContent='Ciudad '+count;
+  };
+  document.querySelectorAll('.reveal').forEach(btn=>btn.addEventListener('click',()=>{
+    if(btn.dataset.r==='loc'){
+      const a=document.getElementById('ans-loc');
+      a.textContent=document.getElementById('cityCard').dataset.loc; a.classList.add('show');
+    } else {
+      const a=document.getElementById('ans-time');
+      try{
+        const tz=document.getElementById('cityCard').dataset.tz;
+        const p=new Intl.DateTimeFormat('en',{timeZone:tz,hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date());
+        let H=+p.find(x=>x.type==='hour').value, M=+p.find(x=>x.type==='minute').value;
+        if(H===24)H=0;
+        a.textContent=(H<10?'0'+H:H)+':'+(M<10?'0'+M:M)+' → '+spanishTimeHM(H,M);
+      }catch(e){ a.textContent='(no disponible)'; }
+      a.classList.add('show');
+    }
+  }));
+  document.getElementById('cityNext').addEventListener('click',pick);
+  pick();
+}
+function renderQuizItems(quiz, secId=''){
+  return quiz.map((q,i)=>`
+    <div class="pr" data-i="${i}" data-sec="${secId}">
+      <div class="q">${q.before} <b style="color:var(--bone-dim)">______</b> ${q.after} &nbsp;<span class="cue ${q.tense}">${q.cue}</span> <span class="hintv">(${q.verb}, ${q.person})</span></div>
+      <div class="pr-row"><input type="text" placeholder="escribe el verbo…" aria-label="respuesta ${i+1}"><button class="check">Comprobar</button><button class="reveal">Ver respuesta</button></div>
+      <div class="fb"></div>
+    </div>`).join('');
+}
+function renderModQuiz(sec){
+  const pfx=sec.id||'mq';
+  return sec.items.map((it,i)=>`
+    <div class="mq-item" id="mqItem_${pfx}_${i}" data-sec="${pfx}">
+      <div class="mq-sentence">${it.sentence.replace('_____','<span class="mq-blank">?</span>')} <span class="cue acc">${it.cue}</span></div>
+      <div class="mq-options">${it.options.map(op=>`
+        <button class="mq-opt" data-ans="${it.answer}" data-val="${op}" data-idx="${pfx}_${i}">${op}</button>`).join('')}
+      </div>
+      <div class="mq-fb" id="mqFb_${pfx}_${i}"></div>
+    </div>`).join('');
+}
+function renderArtPick(sec){
+  const pfx=sec.id||'ap';
+  return sec.rounds.map((r,i)=>{
+    const objs=r.objects.map((o,oi)=>{
+      let cls='ap-obj';
+      if(r.highlightAll) cls+=' ap-hi';
+      else if(Array.isArray(r.highlightSome)) cls+=r.highlightSome.includes(oi)?' ap-hi':' ap-dim';
+      else if(r.highlight===oi) cls+=' ap-hi';
+      else if(r.highlight===null || r.highlight===undefined) cls+='';
+      else cls+=' ap-dim';
+      return `<span class="${cls}">${o.ic}</span>`;
+    }).join('');
+    let tag;
+    if(r.highlightAll) tag='Están resaltados <b>todos</b> los objetos.';
+    else if(Array.isArray(r.highlightSome)) tag='Están resaltados <b>algunos</b> (no todos).';
+    else if(r.highlight===null||r.highlight===undefined) tag='<b>Ninguno</b> está resaltado — es uno cualquiera.';
+    else tag='Está resaltado <b>uno específico</b>.';
+    const opts=r.options.map(op=>`<button class="ap-opt" data-round="${pfx}_${i}" data-val="${op}" data-correct="${r.correct}">${op}</button>`).join('');
+    return `<div class="ap-round" id="apRound_${pfx}_${i}">
+      <div class="ap-stage">${objs}</div>
+      <div class="ap-tag">${tag}</div>
+      <div class="ap-options">${opts}</div>
+      <div class="ap-why" id="apWhy_${pfx}_${i}"><b>¿Por qué?</b> ${r.why}</div>
+    </div>`;
+  }).join('');
+}
+function renderIrGame(sec){
+  const conj=sec.conjugations.slice(0,9);
+  const ref=conj.map(c=>`<span class="ir-ref-item"><b>${c.pronombre}</b> → <em>${c.forma}</em></span>`).join('');
+  const cells=conj.map((c,i)=>`
+    <div class="ir-cell" id="ircell${i}" data-idx="${i}">
+      <div class="ir-cell-pro">${c.pronombre}</div>
+      <input class="ir-cell-inp" placeholder="ir →" id="ircinp${i}" autocomplete="off">
+      <button class="ir-cell-btn" data-idx="${i}">Marcar ✓</button>
+      <div class="ir-cell-result" id="ircres${i}"></div>
+    </div>`).join('');
+  return `
+  <div class="ir-game-wrap">
+    <div class="ir-ref">${ref}</div>
+    <div class="ir-vs-bar">
+      <div class="ir-player-badge" id="irBadgeP">🎓 Tú &nbsp;<span id="irScoreP">0</span></div>
+      <div class="ir-vs">VS</div>
+      <div class="ir-player-badge ir-ai" id="irBadgeAI">🤖 Claude &nbsp;<span id="irScoreAI">0</span></div>
+    </div>
+    <div class="ir-turn-info" id="irTurnInfo">Tu turno — elige una casilla</div>
+    <div class="ir-result-msg" id="irResultMsg"></div>
+    <div class="ir-board">${cells}</div>
+    <div class="ir-btns">
+      <button class="ir-new-btn" id="irNewGame">↺ Nuevo juego</button>
+      <button class="ir-reset-btn" id="irResetScore">Reiniciar marcador</button>
+    </div>
+  </div>`;
+}
+function renderEscenario(sec){
+  const qs=sec.questions.map((q,i)=>`
+    <div class="slide-q">
+      <span class="sq-n2">0${i+1}</span>
+      <span class="qtext">${q.q}</span>
+      <input class="ef-input esc-ans-inp" placeholder="${q.prompt}" aria-label="${q.q}">
+    </div>`).join('');
+  return `<div class="slides-wrap">
+    <div>
+      <div class="slide-stage" id="escStage">
+        <div class="slide-sky" id="escSky"></div>
+        <div class="slide-content">
+          <span class="slide-icon" id="escIcon">☀️</span>
+          <div class="slide-temp" id="escTemp">—</div>
+          <div class="slide-city" id="escCity">—</div>
+        </div>
+        <div class="slide-time" id="escTime">—</div>
+        <div class="slide-part" id="escPart">—</div>
+      </div>
+      <div class="slide-nav">
+        <button class="snav" id="escPrev">← Anterior</button>
+        <div class="slide-dots" id="escDots"></div>
+        <button class="snav" id="escNext">Siguiente →</button>
+      </div>
+    </div>
+    <div class="slide-qs">${qs}</div>
+  </div>`;
+}
+function renderTimeCards(sec){
+  const miniSvg=(h,m)=>{const hr=(h%12+m/60)*30,mn=m*6;const hx=50+Math.sin(hr*Math.PI/180)*22,hy=50-Math.cos(hr*Math.PI/180)*22,mx=50+Math.sin(mn*Math.PI/180)*32,my=50-Math.cos(mn*Math.PI/180)*32;return `<svg width="60" height="60" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="var(--panel)" stroke="var(--line)" stroke-width="3"/><line x1="50" y1="50" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="var(--bone)" stroke-width="7" stroke-linecap="round"/><line x1="50" y1="50" x2="${mx.toFixed(1)}" y2="${my.toFixed(1)}" stroke="var(--pres)" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="50" r="4" fill="var(--past)"/></svg>`;};
+  const hint=`<div class="tc-rule-bar">
+    <span class="tc-pill tc-es"><b>es la</b> <em>→ 1:00</em></span>
+    <span class="tc-rule-sep">·</span>
+    <span class="tc-pill tc-son"><b>son las</b> <em>→ todas las demás</em></span>
+  </div>`;
+  const cards=sec.examples.map((e,i)=>`
+    <div class="tc-card" id="tcard${i}" tabindex="0" role="button" aria-label="Revelar hora">
+      <div class="tc-clock">${miniSvg(e.h,e.m)}</div>
+      <div class="tc-body">
+        <span class="tc-tap-label">👆 toca para ver</span>
+        <span class="tc-answer" id="tcans${i}">${e.t}</span>
+      </div>
+    </div>`).join('');
+  return hint+`<div class="tc-grid">${cards}</div>`;
+}
+function renderSpeaking(sec){
+  return `<div class="est-speaking">${sec.questions.map((q,i)=>`
+    <div class="esp-row">
+      <div class="esp-q"><span class="esp-n">${i+1}</span>${q.q}</div>
+      <input class="ef-input esp-inp" placeholder="${q.prompt}" aria-label="Respuesta ${i+1}">
+    </div>`).join('')}</div>`;
+}
+function renderAIChat(sec){
+  return `
+    <p class="est-hint">${sec.hint||''}</p>
+    <div class="aichat-wrap" id="aichatWrap">
+      <div class="aichat-msgs" id="aichatMsgs">
+        <div class="aichat-msg ai">
+          <div class="aichat-avatar">✦</div>
+          <div class="aichat-bubble">${sec.greeting||'¡Hola! ¿Cómo estás?'}</div>
+        </div>
+      </div>
+      <div class="aichat-input-row">
+        <input class="aichat-input" id="aichatInput" placeholder="Escribe en español…" autocomplete="off" maxlength="300">
+        <button class="aichat-send" id="aichatSend">Enviar</button>
+      </div>
+      <div class="aichat-counter" id="aichatCounter">Mensajes: 0 / 10</div>
+    </div>`;
+}
+function renderSummary(sec){
+  return sec.categories.map((cat,ci)=>{
+    const hasFilter=cat.filterable;
+    const fid='estSum'+ci;
+    const filterBtns=!hasFilter?'':cat.filterType==='gen'?
+      `<div class="est-sum-filters" id="${fid}">
+        <button class="est-sum-btn active" data-f="all">Todos</button>
+        <button class="est-sum-btn" data-f="m" style="border-color:#60a5fa;color:#60a5fa">🔵 Masculino</button>
+        <button class="est-sum-btn" data-f="f" style="border-color:#f472b6;color:#f472b6">🩷 Femenino</button>
+      </div>`:
+      `<div class="est-sum-filters" id="${fid}">
+        <button class="est-sum-btn active" data-f="all">Todos</button>
+        <button class="est-sum-btn" data-f="ar">-ar</button>
+        <button class="est-sum-btn" data-f="er">-er</button>
+        <button class="est-sum-btn" data-f="ir">-ir</button>
+        <button class="est-sum-btn" data-f="irr" style="border-color:#f97316;color:#f97316">Irregulares</button>
+      </div>`;
+    const cards=cat.items.map((it,i)=>{
+      const dataAttr=it.end?`data-f="${it.end}"`:(it.gen?`data-f="${it.gen}"`:'');
+      return `<div class="fc-card" ${dataAttr} id="${fid}card${i}" tabindex="0" role="button" aria-label="${it.es}">
+        <div class="fc-inner">
+          <div class="fc-front" style="border-color:${cat.color}55">
+            <div class="fc-es" style="color:${cat.color}">${it.es}</div>
+            <div class="fc-tap">👆 toca para ver →</div>
+          </div>
+          <div class="fc-back" style="background:${cat.color}15;border-color:${cat.color}">
+            <div class="fc-en">${it.en}</div>
+            <div class="fc-es-small" style="color:${cat.color}">${it.es}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="est-sumcat">
+      <div class="est-sumcat-title" style="color:${cat.color}">${cat.title}
+        <span class="fc-count" id="${fid}count">${cat.items.length} tarjetas</span>
+      </div>
+      ${filterBtns}
+      <div class="fc-grid" id="${fid}Grid">${cards}</div>
+    </div>`;
+  }).join('');
+}
+function renderFicha3(sec){
+  const opciones=['mi papá','mi mamá','mi hermano','mi hermana','mi abuelo','mi abuela','mi hijo','mi hija','mi tío','mi tía','mi primo','mi prima','mi sobrino','mi sobrina','mi amigo','mi amiga','otro…'];
+  const select=(n)=>`<select class="ef3-select" id="ef3sel${n}" aria-label="Parentesco persona ${n}">
+    <option value="">— ¿Quién es? —</option>
+    ${opciones.map(o=>`<option value="${o}">${o}</option>`).join('')}
+  </select>`;
+  return `<p class="est-hint">${sec.hint}</p>
+  <div class="est-ficha3">${sec.personas.map((p,n)=>`
+    <div class="ef3-persona">
+      <div class="ef3-label">${select(n+1)}</div>
+      ${p.fields.map(f=>`<div class="ef-row">
+        <div class="ef-label">${f.label}</div>
+        <input class="ef-input" placeholder="${f.ph}" aria-label="${f.label}">
+      </div>`).join('')}
+    </div>`).join('')}</div>`;
+}
+function renderGustos5(sec){
+  return `<p class="est-hint">${sec.hint}</p>
+  <div class="est-gustos5">${sec.cols.map(col=>`
+    <div class="eg-col">
+      <div class="eg-label" style="color:var(--pres)">${col.label}<span class="eg-hint">· ${col.hint}</span></div>
+      ${col.phs.map((ph,i)=>`<input class="ef-input" placeholder="${ph}" aria-label="${col.label} ${i+1}">`).join('')}
+    </div>`).join('')}</div>`;
+}
+function renderFicha(sec){
+  return `<div class="est-ficha">${sec.fields.map(f=>`
+    <div class="ef-row">
+      <div class="ef-label">${f.label}</div>
+      <input class="ef-input" placeholder="${f.ph}" aria-label="${f.label}">
+    </div>`).join('')}</div>`;
+}
+function renderGustos(sec){
+  return `<p class="est-hint">${sec.hint}</p>
+  <div class="est-gustos">${sec.cols.map(col=>`
+    <div class="eg-col">
+      <div class="eg-label"><b>${col.label}</b><span class="eg-hint">· ${col.hint}</span></div>
+      ${col.phs.map((ph,i)=>`<input class="ef-input" placeholder="${ph}" aria-label="${col.label} ${i+1}">`).join('')}
+    </div>`).join('')}</div>`;
+}
+function renderModales(sec){
+  return `<p class="est-hint">${sec.prompt}</p>
+  <div class="est-modales">${sec.rows.map(r=>`
+    <div class="em-row">
+      <div class="em-verb">${r.verb}</div>
+      <input class="ef-input em-inp" placeholder="${r.ph}" aria-label="${r.verb}">
+    </div>`).join('')}</div>`;
+}
+function renderMatch(pairs, idPfx){
+  const shuffled=[...pairs].sort(()=>Math.random()-.5);
+  const qs=pairs.map((p,i)=>`<div class="qa-card qa-q-card" data-idx="${i}"><span class="qa-text">${p.q}</span></div>`).join('');
+  const as=shuffled.map(p=>`<div class="qa-card qa-a-card" data-idx="${pairs.indexOf(p)}"><span class="qa-text">${p.a}</span></div>`).join('');
+  return `<div class="qa-match-wrap" id="${idPfx}Wrap">
+    <div class="qa-col" id="${idPfx}Q">${qs}</div>
+    <div class="qa-col" id="${idPfx}A">${as}</div>
+  </div>
+  <div class="qa-status" id="${idPfx}St"></div>
+  <button class="qa-reset" id="${idPfx}Rst">↺ Reiniciar</button>`;
+}
+function renderMatch3(sec){
+  return `<div class="qa3-toggle-bar">
+    <button class="qa3-btn active" id="estQa3Sing">él / ella · singular</button>
+    <button class="qa3-btn" id="estQa3Plur">ellos / ellas · plural</button>
+  </div>
+  <div id="estQa3WrapS">${renderMatch(sec.sing,'estS')}</div>
+  <div id="estQa3WrapP" hidden>${renderMatch(sec.plur,'estP')}</div>`;
+}
+function sectionBlock(sec,idx){
+  const delay=`animation-delay:${(idx||0)*80}ms`;
+  const inner=sec.type==='ficha'?renderFicha(sec)
+    :sec.type==='ficha3'?renderFicha3(sec)
+    :sec.type==='gustos'?renderGustos(sec)
+    :sec.type==='gustos5'?renderGustos5(sec)
+    :sec.type==='modales'?renderModales(sec)
+    :sec.type==='match'?`${sec.hint?`<p class="est-hint">${sec.hint}</p>`:''}`+renderMatch(sec.pairs,'estM'+sec.id)
+    :sec.type==='match3'?`${sec.hint?`<p class="est-hint">${sec.hint}</p>`:''}`+renderMatch3(sec)
+    :sec.type==='quiz'?renderQuizItems(sec.quiz,sec.id)+`<div class="score">Aciertos: 0 / ${sec.quiz.length}</div><div class="quiz-unlock-hint">Responde todo correctamente para desbloquear la siguiente práctica. 🔒</div>`
+    :sec.type==='summary'?renderSummary(sec)
+    :sec.type==='modquiz'?renderModQuiz(sec)
+    :sec.type==='artpick'?`${sec.hint?`<p class="est-hint">${sec.hint}</p>`:''}`+renderArtPick(sec)
+    :sec.type==='timecards'?renderTimeCards(sec)
+    :sec.type==='speaking'?renderSpeaking(sec)
+    :sec.type==='aichat'?renderAIChat(sec)
+    :sec.type==='irgame'?renderIrGame(sec)
+    :sec.type==='escenario'?renderEscenario(sec)
+    :sec.type==='cities'?`<div class="city-card" id="cityCard">
+      <div class="city-top"><span class="city-flag" id="cFlag">🌍</span><div class="city-name" id="cName">—</div></div>
+      <div class="city-hint">Busca en internet y responde en español.</div>
+      <div class="cq"><div class="cq-q"><span class="cq-n">1</span>¿Qué hora es?</div><input id="cq1" placeholder="Son las… / Es la una…"><div class="cq-reveal"><button class="reveal" data-r="time">Ver hora →</button><span class="ans" id="ans-time"></span></div></div>
+      <div class="cq"><div class="cq-q"><span class="cq-n">2</span>¿Cómo está el clima?</div><input id="cq2" placeholder="Está soleado. / Hace frío."></div>
+      <div class="cq"><div class="cq-q"><span class="cq-n">3</span>¿A cuántos grados está?</div><input id="cq3" placeholder="Está a __ grados."></div>
+      <div class="cq"><div class="cq-q"><span class="cq-n">4</span>¿Dónde está?</div><input id="cq4" placeholder="Está en __, en __."><div class="cq-reveal"><button class="reveal" data-r="loc">Ver ubicación →</button><span class="ans" id="ans-loc"></span></div></div>
+      <button class="city-next" id="cityNext">Nueva ciudad →</button><span class="city-count" id="cityCount"></span>
+    </div>`
+    :sec.type==='chat'?`<div class="topic-chat">
+      <div class="topic-chat-icon">💬</div>
+      <div class="topic-chat-info"><div class="tci-label">${sec.label}</div><div class="tci-hint">${sec.hint}</div></div>
+      <button class="topic-chat-btn" id="chatOpenBtn" onclick="window.open('LQE-chat-estudiante.html','lqe-chat','width=420,height=650,resizable=yes')">Abrir chat →</button>
+    </div>`
+    :'';
+  return `<div class="est-sec${sec.type==='quiz'?' is-final-quiz':''}" style="${delay}">
+    <div class="est-sec-head">
+      <span class="est-num">${sec.num}</span>
+      <h3>${sec.title}${sec.type==='quiz'?'<span class="est-quiz-badge">QUIZ FINAL</span>':''}</h3>
+    </div>
+    ${sec.type==='quiz'?'<div class="est-quiz-divider"></div>':''}
+    ${inner}
+  </div>`;
+}
+function topicHTML(ex){
+  if(ex.sections){
+    const secs=ex.sections.map((s,i)=>sectionBlock(s,i)).join('<hr class="divider">');
+    const chatBlock=ex.chat?`<div class="topic-chat">
+      <div class="topic-chat-icon">💬</div>
+      <div class="topic-chat-info"><div class="tci-label">${ex.chat.label}</div><div class="tci-hint">${ex.chat.hint}</div></div>
+      <button class="topic-chat-btn" id="chatOpenBtn" onclick="window.open('LQE-chat-estudiante.html','lqe-chat','width=420,height=650,resizable=yes')">Abrir chat →</button>
+    </div>`:'';
+    const isPresent=ex.id==='presentacion';
+    const hero=isPresent?`<div class="est-welcome-wrap wrap">
+        <div class="est-welcome-hand-wrap"><span class="est-welcome-hand">👋</span></div>
+        <div class="est-welcome-main">
+          <div class="eyebrow">Practica español · A1</div>
+          <h1>${esc(ex.title)}</h1>
+          <p>${esc(ex.sub)}</p>
+          <div class="est-welcome-stat">🌍 +500 millones de hispanohablantes en el mundo</div>
+        </div>
+      </div>`:
+      `<div class="phero wrap"><div class="eyebrow">Ejercicios de práctica</div><h1>${esc(ex.title)}</h1><p>${esc(ex.sub)}</p></div>`;
+    return `${hero}
+    <section class="les wrap">${secs}${chatBlock}</section>
+    <footer class="wrap"><p><button class="flink" onclick="location.hash=''">← Volver al menú</button></p></footer>`;
+  }
+  // layout original para lecciones sin secciones
+  const items=renderQuizItems(ex.quiz||[]);
+  const cityBlock=ex.cities?`<hr class="divider" style="margin-top:28px">
+  <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;margin:18px 0 6px">🌍 Actividad: ciudades del mundo</h2>
+  <p style="color:var(--bone-dim);margin-bottom:14px">${esc(ex.citySub||'')}</p>
+  <div class="city-card" id="cityCard">
+    <div class="city-top"><span class="city-flag" id="cFlag">🌍</span><div class="city-name" id="cName">—</div></div>
+    <div class="city-hint">Busca en internet y responde en español. Puedes revelar la hora y la ubicación para verificar.</div>
+    <div class="cq"><div class="cq-q"><span class="cq-n">1</span>¿Qué hora es?</div><input id="cq1" placeholder="Son las… / Es la una…"><div class="cq-reveal"><button class="reveal" data-r="time">Ver hora local →</button><span class="ans" id="ans-time"></span></div></div>
+    <div class="cq"><div class="cq-q"><span class="cq-n">2</span>¿Cómo está el clima?</div><input id="cq2" placeholder="Está soleado. / Hace frío."></div>
+    <div class="cq"><div class="cq-q"><span class="cq-n">3</span>¿A cuántos grados está?</div><input id="cq3" placeholder="Está a __ grados."></div>
+    <div class="cq"><div class="cq-q"><span class="cq-n">4</span>¿Dónde está?</div><input id="cq4" placeholder="Está en __, en __."><div class="cq-reveal"><button class="reveal" data-r="loc">Ver ubicación →</button><span class="ans" id="ans-loc"></span></div></div>
+    <button class="city-next" id="cityNext">Nueva ciudad →</button><span class="city-count" id="cityCount"></span>
+  </div>`:'';
+  const chatBlock=ex.chat?`<div class="topic-chat">
+    <div class="topic-chat-icon">💬</div>
+    <div class="topic-chat-info"><div class="tci-label">${ex.chat.label}</div><div class="tci-hint">${ex.chat.hint}</div></div>
+    <button class="topic-chat-btn" id="chatOpenBtn" onclick="window.open('LQE-chat-estudiante.html','lqe-chat','width=420,height=650,resizable=yes')">Abrir chat →</button>
+  </div>`:'';
+  return `<div class="phero wrap"><div class="eyebrow">Ejercicios de práctica</div><h1>${esc(ex.title)}</h1><p>${esc(ex.sub)}</p></div>
+  <section class="les wrap"><hr class="divider">${items}<div class="score">Aciertos: 0 / ${(ex.quiz||[]).length}</div>${cityBlock}${chatBlock}</section>
+  <footer class="wrap"><p><button class="flink" onclick="location.hash=''">← Volver al menú</button></p></footer>`;
+}
+function wireMatch(qId, aId, stId, rstId){
+  const qcol=document.getElementById(qId), acol=document.getElementById(aId);
+  const status=document.getElementById(stId), reset=document.getElementById(rstId);
+  if(!qcol||!acol) return;
+  const allCards=[...qcol.querySelectorAll('.qa-card'),...acol.querySelectorAll('.qa-card')];
+  const maxH=Math.max(...allCards.map(c=>c.getBoundingClientRect().height));
+  allCards.forEach(c=>c.style.height=maxH+'px');
+  let selQ=null,selA=null,matched=0;
+  const total=qcol.querySelectorAll('.qa-card').length;
+  const check=()=>{
+    if(!selQ||!selA) return;
+    if(selQ.dataset.idx===selA.dataset.idx){
+      selQ.classList.remove('selected');selQ.classList.add('matched');
+      selA.classList.remove('selected');selA.classList.add('matched');
+      matched++;if(status)status.textContent=matched===total?'🎉 ¡Perfecto!':`✅ ${matched}/${total}`;
+      selQ=null;selA=null;
+    } else {
+      selQ.classList.add('wrong');selA.classList.add('wrong');
+      setTimeout(()=>{[selQ,selA].forEach(c=>{if(c)c.classList.remove('wrong','selected')});selQ=null;selA=null;},500);
+    }
+  };
+  qcol.addEventListener('click',e=>{const c=e.target.closest('.qa-q-card');if(!c||c.classList.contains('matched'))return;qcol.querySelectorAll('.qa-card').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');selQ=c;check();});
+  acol.addEventListener('click',e=>{const c=e.target.closest('.qa-a-card');if(!c||c.classList.contains('matched'))return;acol.querySelectorAll('.qa-card').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');selA=c;check();});
+  if(reset) reset.addEventListener('click',()=>{matched=0;selQ=null;selA=null;if(status)status.textContent='';allCards.forEach(c=>c.classList.remove('matched','selected','wrong'));});
+}
+
+  // ── Personalidad visual por lección ── 
+  function injectLessonPersonality(lessonId){
+    const FLOATERS={
+      'presentacion':[
+        {e:'👋',x:'8%',y:'18%',fs:'2.2rem',dur:'7s'},{e:'💬',x:'72%',y:'10%',fs:'1.6rem',dur:'10s'},
+        {e:'😊',x:'42%',y:'12%',fs:'1.8rem',dur:'9s'},{e:'🌎',x:'88%',y:'45%',fs:'2rem',dur:'8s'},
+        {e:'🗣️',x:'25%',y:'55%',fs:'1.5rem',dur:'12s'},{e:'✨',x:'60%',y:'22%',fs:'1.6rem',dur:'11s'},
+        {e:'🤝',x:'15%',y:'70%',fs:'1.4rem',dur:'9s'},{e:'📛',x:'78%',y:'65%',fs:'1.5rem',dur:'13s'},
+      ],
+      'clima-ser-estar':[
+        {e:'☁️',x:'8%',y:'14%',fs:'2.4rem',dur:'9s'},{e:'☁️',x:'68%',y:'7%',fs:'1.8rem',dur:'12s'},
+        {e:'⛅',x:'38%',y:'18%',fs:'1.6rem',dur:'8s'},{e:'🌧️',x:'82%',y:'28%',fs:'2rem',dur:'7s'},
+        {e:'❄️',x:'18%',y:'58%',fs:'1.4rem',dur:'14s'},{e:'☀️',x:'55%',y:'6%',fs:'2.2rem',dur:'11s'},
+        {e:'🌡️',x:'90%',y:'60%',fs:'1.6rem',dur:'10s'},{e:'🌍',x:'30%',y:'72%',fs:'2rem',dur:'9s'},
+      ],
+      'futuro-compuesto':[
+        {e:'🔮',x:'12%',y:'15%',fs:'2.2rem',dur:'8s'},{e:'🚀',x:'70%',y:'8%',fs:'1.8rem',dur:'10s'},
+        {e:'⏩',x:'45%',y:'20%',fs:'1.6rem',dur:'7s'},{e:'✈️',x:'82%',y:'42%',fs:'2rem',dur:'12s'},
+        {e:'🌟',x:'20%',y:'55%',fs:'1.4rem',dur:'9s'},{e:'🎯',x:'58%',y:'65%',fs:'1.8rem',dur:'11s'},
+        {e:'💫',x:'88%',y:'70%',fs:'1.6rem',dur:'8s'},{e:'🗓️',x:'35%',y:'8%',fs:'1.5rem',dur:'13s'},
+      ],
+      'articulos':[
+        {e:'📗',x:'9%',y:'16%',fs:'2.2rem',dur:'8s'},{e:'🏠',x:'70%',y:'9%',fs:'1.8rem',dur:'11s'},
+        {e:'🔵',x:'42%',y:'14%',fs:'1.6rem',dur:'7s'},{e:'🟡',x:'85%',y:'40%',fs:'2rem',dur:'9s'},
+        {e:'🐕',x:'18%',y:'58%',fs:'1.6rem',dur:'12s'},{e:'🌸',x:'56%',y:'66%',fs:'1.7rem',dur:'10s'},
+        {e:'🍎',x:'88%',y:'68%',fs:'1.5rem',dur:'8s'},{e:'✨',x:'30%',y:'10%',fs:'1.4rem',dur:'13s'},
+      ],
+    };
+    const HERO_CLS={
+      'presentacion':'hero-present',
+      'clima-ser-estar':'hero-clima',
+      'futuro-compuesto':'hero-futuro',
+      'articulos':'hero-art',
+    };
+    const floaters=FLOATERS[lessonId];
+    const cls=HERO_CLS[lessonId];
+    if(!floaters||!cls) return;
+    // Aplicar al hero (phero o est-welcome-wrap)
+    const hero=document.querySelector('.phero,.est-welcome-wrap');
+    if(!hero) return;
+    hero.classList.add('lesson-hero',cls);
+    hero.style.position='relative';
+    hero.style.overflow='hidden';
+    const wrap=document.createElement('div');
+    wrap.className='lesson-floaters';
+    wrap.innerHTML=floaters.map((f,i)=>
+      `<span class="lf" style="left:${f.x};top:${f.y};--fs:${f.fs};--dur:${f.dur};animation-delay:${(i*1.3).toFixed(1)}s">${f.e}</span>`
+    ).join('');
+    hero.insertBefore(wrap,hero.firstChild);
+  }
+
+function initTopic(id){
+  const ex=EXERCISES[id];
+  if(!ex){ location.hash=''; return; }
+  // ── Guarda de desbloqueo: no dejar entrar a temas bloqueados ──
+  if(LQEProgress.stateOf(id) === 'locked'){
+    const req = LQEProgress.reqName(id);
+    LQEProgress.toast('🔒 Primero completa: '+req);
+    location.hash=''; return;
+  }
+  if(cycleTimer){clearInterval(cycleTimer);cycleTimer=null;}
+  if(ex.type==='cities'){ initCity(ex); return; }
+  document.documentElement.style.setProperty('--accent',ex.color||'#e2a24c');
+  document.body.classList.add('in-topic','show-back');
+  BACK_TO=''; setBack('← Volver al menú');
+  app.innerHTML=topicHTML({...ex, id});
+  setTimeout(()=>injectLessonPersonality(id),60);
+  window.scrollTo(0,0);
+
+  // wiring de actividades por sección (formato nuevo)
+  if(ex.sections){
+    // quiz de verbos — múltiples secciones quiz
+    ex.sections.filter(s=>s.type==='quiz').forEach(sec=>{
+      const secEl=app.querySelector(`.est-sec-head .est-num`)?.closest('.est-sec');
+      app.querySelectorAll('.pr[data-sec="'+sec.id+'"]').forEach(pr=>{
+        const q=sec.quiz[+pr.dataset.i];
+        if(!q) return;
+        const input=pr.querySelector('input'),fb=pr.querySelector('.fb'),score=pr.closest('.est-sec')?.querySelector('.score');
+        const strip=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+        const mark=(cls,msg)=>{fb.className='fb show '+cls;fb.innerHTML=msg;};
+        const secEl2=pr.closest('.est-sec');
+        const upd=()=>{
+          const prs=[...secEl2.querySelectorAll('.pr')];
+          const done=prs.filter(x=>x.dataset.done).length, tot=sec.quiz.length;
+          const perfect=prs.filter(x=>x.dataset.perfect).length;
+          if(score)score.textContent='Aciertos: '+done+' / '+tot+(done===tot?' · ¡Completado! 🎉':'');
+          const hint=secEl2.querySelector('.quiz-unlock-hint');
+          if(hint && perfect===tot && tot>0) hint.innerHTML='✅ ¡Quiz completo! Desbloqueando la siguiente práctica…';
+          if(perfect===tot && tot>0) celebrateQuiz(secEl2, id);
+        };
+        const grade=()=>{const v=input.value;if(!strip(v)){mark('near','Escribe algo 🙂');return;}if(strip(v)===strip(q.answer)){const exact=v.trim()===q.answer;mark(exact?'ok':'near',exact?('¡Correcto! → <b>'+q.answer+'</b> ✓'):('¡Casi! Revisa la tilde → <b>'+q.answer+'</b>'));pr.dataset.done='1';if(exact){pr.dataset.perfect='1';delete pr.dataset.revealed;}upd();}else mark('no','Inténtalo de nuevo.');};
+        pr.querySelector('.check').addEventListener('click',grade);
+        input.addEventListener('keydown',e=>{if(e.key==='Enter')grade();});
+        pr.querySelector('.reveal').addEventListener('click',()=>{input.value=q.answer;mark('near','Respuesta → <b>'+q.answer+'</b>');pr.dataset.done='1';pr.dataset.revealed='1';delete pr.dataset.perfect;upd();});
+      });
+    });
+    // match simple — buscar todos los wrappers con ID que empieza por estM
+    ex.sections.filter(s=>s.type==='match').forEach(sec=>{
+      const pfx='estM'+sec.id;
+      wireMatch(pfx+'Q',pfx+'A',pfx+'St',pfx+'Rst');
+    });
+    // juego gato del verbo ir — alumno vs Claude
+    if(document.getElementById('irNewGame')){
+      const irSec=ex.sections.find(s=>s.type==='irgame');
+      const WINS=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      const stripN=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+      let board=Array(9).fill(null), scP=0, scAI=0, locked=false;
+
+      const checkWinner=b=>{
+        for(const [a,c,d] of WINS) if(b[a]&&b[a]===b[c]&&b[a]===b[d]) return {w:b[a],line:[a,c,d]};
+        if(b.every(Boolean)) return {w:'empate',line:[]};
+        return null;
+      };
+
+      const setMsg=(txt,color='#f1f5f9')=>{
+        const m=document.getElementById('irResultMsg');
+        m.textContent=txt; m.style.color=color;
+      };
+      const setTurn=txt=>{ document.getElementById('irTurnInfo').textContent=txt; };
+
+      const markCell=(i,player)=>{
+        board[i]=player;
+        const cell=document.getElementById('ircell'+i);
+        const res=document.getElementById('ircres'+i);
+        const inp=document.getElementById('ircinp'+i);
+        const btn=cell.querySelector('.ir-cell-btn');
+        cell.classList.add(player==='P'?'taken-P':'taken-AI');
+        res.textContent=irSec.conjugations[i].forma;
+        if(inp) inp.style.display='none';
+        if(btn) btn.style.display='none';
+      };
+
+      const endGame=result=>{
+        locked=true;
+        document.querySelectorAll('.ir-cell-btn').forEach(b=>b.disabled=true);
+        document.querySelectorAll('.ir-cell-inp').forEach(i=>i.disabled=true);
+        if(result.w==='P'){
+          scP++; document.getElementById('irScoreP').textContent=scP;
+          setMsg('🎉 ¡Ganaste! ¡Excelente conjugación!','#67e8f9');
+          result.line.forEach(i=>document.getElementById('ircell'+i).classList.add('win'));
+        } else if(result.w==='AI'){
+          scAI++; document.getElementById('irScoreAI').textContent=scAI;
+          setMsg('🤖 Gané esta vez… ¡inténtalo de nuevo!','#f472b6');
+          result.line.forEach(i=>document.getElementById('ircell'+i).classList.add('win-ai'));
+        } else {
+          setMsg('😮 ¡Empate! Buen juego.','#fbbf24');
+        }
+        setTurn('');
+      };
+
+      // IA: juega con sesgo hacia dejar ganar al alumno
+      // Estrategia: 70% probabilidad de cometer un "error" estratégico
+      const aiMove=()=>{
+        const empty=board.map((v,i)=>v===null?i:-1).filter(i=>i>=0);
+        if(!empty.length) return;
+
+        // 1. Si la IA puede ganar, normalmente NO lo hace (solo 15% de veces sí)
+        for(const [a,b,c] of WINS){
+          if(board[a]==='AI'&&board[b]==='AI'&&board[c]===null){
+            if(Math.random()<0.15){ markCell(c,'AI'); return; } // rarísimo
+            break;
+          }
+          if(board[a]==='AI'&&board[c]==='AI'&&board[b]===null){
+            if(Math.random()<0.15){ markCell(b,'AI'); return; }
+            break;
+          }
+          if(board[b]==='AI'&&board[c]==='AI'&&board[a]===null){
+            if(Math.random()<0.15){ markCell(a,'AI'); return; }
+            break;
+          }
+        }
+        // 2. Bloquear al alumno si está a punto de ganar (75% de las veces)
+        for(const [a,b,c] of WINS){
+          const cells=[a,b,c];
+          const pCount=cells.filter(i=>board[i]==='P').length;
+          const empty2=cells.filter(i=>board[i]===null);
+          if(pCount===2&&empty2.length===1){
+            if(Math.random()<0.75){ markCell(empty2[0],'AI'); return; }
+            break;
+          }
+        }
+        // 3. El resto: casilla aleatoria
+        const pick=empty[Math.floor(Math.random()*empty.length)];
+        markCell(pick,'AI');
+      };
+
+      const playerPlay=(i)=>{
+        if(locked||board[i]) return;
+        const inp=document.getElementById('ircinp'+i);
+        const conj=irSec.conjugations[i];
+        if(stripN(inp.value)!==stripN(conj.forma)){
+          inp.classList.add('error');
+          setTimeout(()=>{inp.classList.remove('error');inp.value='';inp.focus();},700);
+          return;
+        }
+        markCell(i,'P');
+        const r=checkWinner(board);
+        if(r){ endGame(r); return; }
+        setTurn('🤖 Claude está pensando…');
+        setTimeout(()=>{
+          aiMove();
+          const r2=checkWinner(board);
+          if(r2){ endGame(r2); return; }
+          setTurn('Tu turno — elige una casilla');
+        },600);
+      };
+
+      document.querySelectorAll('.ir-cell-btn').forEach(btn=>{
+        const i=+btn.dataset.idx;
+        btn.addEventListener('click',()=>playerPlay(i));
+      });
+      document.querySelectorAll('.ir-cell-inp').forEach((inp,i)=>{
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();playerPlay(i);}});
+      });
+
+      const resetGame=()=>{
+        board=Array(9).fill(null); locked=false;
+        setMsg(''); setTurn('Tu turno — elige una casilla');
+        document.querySelectorAll('.ir-cell').forEach((cell,i)=>{
+          cell.className='ir-cell';
+          const inp=document.getElementById('ircinp'+i);
+          const btn=cell.querySelector('.ir-cell-btn');
+          const res=document.getElementById('ircres'+i);
+          if(inp){inp.style.display='';inp.value='';inp.disabled=false;}
+          if(btn){btn.style.display='';btn.disabled=false;}
+          if(res) res.textContent='';
+        });
+      };
+
+      document.getElementById('irNewGame').addEventListener('click',resetGame);
+      document.getElementById('irResetScore').addEventListener('click',()=>{
+        scP=0; scAI=0;
+        document.getElementById('irScoreP').textContent=0;
+        document.getElementById('irScoreAI').textContent=0;
+        resetGame();
+      });
+    }
+    // animación intro del gato — parpadeo de líneas ganadoras
+    const irBoard=document.querySelector('.ir-board');
+    if(irBoard&&'IntersectionObserver' in window){
+      const WINS=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      let animDone=false;
+      const obs=new IntersectionObserver(entries=>{
+        if(animDone) return;
+        entries.forEach(entry=>{
+          if(!entry.isIntersecting) return;
+          animDone=true; obs.disconnect();
+          // recorre 3 líneas ganadoras aleatorias con parpadeo
+          const picks=[WINS[0],WINS[4],WINS[6]];
+          const runSeq=(offset)=>{
+            picks.forEach((line,li)=>{
+              setTimeout(()=>{
+                line.forEach(i=>{const cell=document.getElementById('ircell'+i);if(cell)cell.classList.add('ir-preview');});
+                setTimeout(()=>{line.forEach(i=>{const cell=document.getElementById('ircell'+i);if(cell)cell.classList.remove('ir-preview');});},500);
+              },offset+li*700);
+            });
+          };
+          runSeq(0);
+          runSeq(picks.length*700+400); // segunda vuelta
+        });
+      },{threshold:0.4});
+      obs.observe(irBoard);
+    }
+    // vibrado en scroll para emparejamientos — indica interactividad
+    const matchWraps=app.querySelectorAll('.qa-match-wrap');
+    if(matchWraps.length&&'IntersectionObserver' in window){
+      const obs=new IntersectionObserver(entries=>{
+        entries.forEach(entry=>{
+          if(!entry.isIntersecting) return;
+          obs.unobserve(entry.target);
+          const cols=entry.target.querySelectorAll('.qa-col');
+          // primera pasada: animación guía (match-guide)
+          cols.forEach(col=>{
+            const first=col.querySelector('.qa-card:not(.matched)');
+            if(first){
+              first.classList.add(col.classList.contains('qa-col')?
+                (col===cols[0]?'match-guide-q':'match-guide-a'):'match-guide-q');
+            }
+          });
+          // limpiar guía después de la animación
+          setTimeout(()=>{
+            entry.target.querySelectorAll('.match-guide-q,.match-guide-a')
+              .forEach(c=>c.classList.remove('match-guide-q','match-guide-a'));
+          },4200);
+          // vibrado en scroll al re-entrar
+          const obs2=new IntersectionObserver(e2=>{
+            e2.forEach(e=>{
+              if(!e.isIntersecting) return;
+              e.target.querySelectorAll('.qa-col').forEach(col=>{
+                const first=col.querySelector('.qa-card:not(.matched)');
+                if(first){first.classList.add('wiggle');setTimeout(()=>first.classList.remove('wiggle'),500);}
+              });
+            });
+          },{threshold:0.3});
+          obs2.observe(entry.target);
+        });
+      },{threshold:0.25});
+      matchWraps.forEach(w=>obs.observe(w));
+    }
+    // escenario tipo slide
+    const escNext=document.getElementById('escNext');
+    if(escNext){
+      const escSec=ex.sections.find(s=>s.type==='escenario');
+      const slides=escSec.slides;
+      const skyMap={afternoon:'linear-gradient(180deg,#1a6bcc,#f4a62a)',rainy:'linear-gradient(180deg,#3a4a5a,#5a7a8a)',night:'linear-gradient(180deg,#05061a,#1a2040)',morning:'linear-gradient(180deg,#3a88cc,#a8d8f0)',cloudy:'linear-gradient(180deg,#4a5a6a,#8a9aaa)',dawn:'linear-gradient(180deg,#3a2060,#f08040)',sunset:'linear-gradient(180deg,#1a3060,#f06040)',snowy:'linear-gradient(180deg,#5a6a7a,#c0d0e0)'};
+      let cur=0;
+      const dots=document.getElementById('escDots');
+      dots.innerHTML=slides.map((_,i)=>`<span class="sdot${i===0?' active':''}" data-i="${i}"></span>`).join('');
+      const show=i=>{
+        cur=i;
+        const s=slides[i];
+        document.getElementById('escStage').style.background=skyMap[s.sky]||skyMap.afternoon;
+        document.getElementById('escIcon').textContent=s.icon;
+        document.getElementById('escTemp').textContent=s.temp;
+        document.getElementById('escCity').textContent=s.city;
+        document.getElementById('escTime').textContent=s.time;
+        document.getElementById('escPart').textContent=s.part;
+        document.getElementById('escPrev').disabled=i===0;
+        document.getElementById('escNext').disabled=i===slides.length-1;
+        dots.querySelectorAll('.sdot').forEach((d,k)=>d.classList.toggle('active',k===i));
+        app.querySelectorAll('.esc-ans-inp').forEach(inp=>inp.value='');
+      };
+      document.getElementById('escPrev').addEventListener('click',()=>{if(cur>0)show(cur-1);});
+      document.getElementById('escNext').addEventListener('click',()=>{if(cur<slides.length-1)show(cur+1);});
+      dots.querySelectorAll('.sdot').forEach(d=>d.addEventListener('click',()=>show(+d.dataset.i)));
+      show(0);
+    }
+    // timecards — tap para revelar
+    app.querySelectorAll('.tc-card').forEach(card=>{
+      card.addEventListener('click',()=>card.classList.toggle('tc-revealed'));
+      card.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();card.classList.toggle('tc-revealed');}});
+    });
+    app.querySelectorAll('.fc-card').forEach(card=>{
+      card.addEventListener('click',()=>card.classList.toggle('flipped'));
+      card.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();card.classList.toggle('flipped');}});
+    });
+    app.querySelectorAll('.est-sum-filters').forEach(filters=>{
+      const gridId=filters.id+'Grid';
+      const grid=document.getElementById(gridId);
+      if(!grid) return;
+      filters.querySelectorAll('.est-sum-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          filters.querySelectorAll('.est-sum-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          const f=btn.dataset.f;
+          grid.querySelectorAll('.fc-card,.est-sumcard').forEach(c=>{
+            c.classList.toggle('vc-hidden', f!=='all' && c.dataset.f!==f);
+          });
+        });
+      });
+    });
+    app.querySelectorAll('.mq-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const idx=btn.dataset.idx;
+        const fb=document.getElementById('mqFb_'+idx);
+        const correct=btn.dataset.val===btn.dataset.ans;
+        app.querySelectorAll(`.mq-opt[data-idx="${idx}"]`).forEach(b=>{
+          b.disabled=true;
+          if(b.dataset.val===btn.dataset.ans) b.classList.add('mq-correct');
+          else if(b===btn) b.classList.add('mq-wrong');
+        });
+        if(fb){
+          fb.textContent=correct?'✅ ¡Correcto!':'❌ La respuesta correcta es: '+btn.dataset.ans;
+          fb.className='mq-fb '+(correct?'mq-fb-ok':'mq-fb-no');
+        }
+      });
+    });
+    // wiring artpick (¿definido o indefinido?)
+    app.querySelectorAll('.ap-opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const round=btn.dataset.round;
+        const correct=btn.dataset.val===btn.dataset.correct;
+        app.querySelectorAll(`.ap-opt[data-round="${round}"]`).forEach(b=>{
+          b.disabled=true;
+          if(b.dataset.val===b.dataset.correct) b.classList.add('ap-correct');
+          else if(b===btn) b.classList.add('ap-wrong');
+        });
+        const why=document.getElementById('apWhy_'+round);
+        if(why) why.classList.add('show');
+      });
+    });
+
+    // ── Wiring AI Chat con Claude (práctica de conversación) ──
+    const aichatInput=document.getElementById('aichatInput');
+    const aichatSend=document.getElementById('aichatSend');
+    const aichatMsgs=document.getElementById('aichatMsgs');
+    const aichatCounter=document.getElementById('aichatCounter');
+    if(aichatInput && aichatSend){
+      const chatSec=ex.sections.find(s=>s.type==='aichat');
+      const sysPrompt=chatSec?.systemPrompt||'Eres un tutor de español. Practica con el estudiante en español.';
+      const history=[]; // [{role,content}]
+      let userCount=0;
+      const MAX=10;
+
+      function addBubble(role,text){
+        const div=document.createElement('div');
+        div.className='aichat-msg '+(role==='assistant'?'ai':'user');
+        div.innerHTML=`<div class="aichat-avatar">${role==='assistant'?'✦':'Yo'}</div><div class="aichat-bubble">${text}</div>`;
+        aichatMsgs.appendChild(div);
+        aichatMsgs.scrollTop=aichatMsgs.scrollHeight;
+      }
+      function showTyping(){
+        const t=document.createElement('div');
+        t.className='aichat-typing';t.id='aichatTyping';
+        t.innerHTML='<span></span><span></span><span></span>';
+        aichatMsgs.appendChild(t); aichatMsgs.scrollTop=aichatMsgs.scrollHeight;
+        return t;
+      }
+      async function sendMsg(){
+        const text=aichatInput.value.trim();
+        if(!text||aichatSend.disabled) return;
+        userCount++;
+        aichatInput.value='';
+        aichatSend.disabled=true; aichatInput.disabled=true;
+        addBubble('user',text);
+        history.push({role:'user',content:text});
+        aichatCounter.textContent='Mensajes: '+userCount+' / '+MAX;
+        // Si llegó al límite, incluir instrucción de despedida
+        const msgs=[...history];
+        if(userCount>=MAX){
+          msgs[msgs.length-1]={role:'user',content:text+'\n\n[Instrucción interna: Este es el mensaje 10. Despídete amablemente en español usando "ir + a + infinitivo" con una excusa cotidiana creativa.]'};
+        }
+        const typing=showTyping();
+        try{
+          const res=await fetch('/.netlify/functions/chat',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+              messages:msgs,
+              systemPrompt:sysPrompt
+            })
+          });
+          const data=await res.json();
+          const reply=data.content?.find(b=>b.type==='text')?.text||'…';
+          typing.remove();
+          addBubble('assistant',reply);
+          history.push({role:'assistant',content:reply});
+        }catch(e){
+          typing.remove();
+          addBubble('assistant','(Hubo un error de conexión. Intenta de nuevo.)');
+        }
+        if(userCount>=MAX){
+          aichatInput.disabled=true; aichatSend.disabled=true;
+          aichatInput.placeholder='Conversación terminada. ¡Buen trabajo!';
+        } else {
+          aichatInput.disabled=false; aichatSend.disabled=false;
+          aichatInput.focus();
+        }
+      }
+      aichatSend.addEventListener('click',sendMsg);
+      aichatInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
+    }
+    const m3=ex.sections.find(s=>s.type==='match3');
+    if(m3){
+      wireMatch('estSQ','estSA','estSSt','estSRst');
+      wireMatch('estPQ','estPA','estPSt','estPRst');
+      const btnS=document.getElementById('estQa3Sing'),btnP=document.getElementById('estQa3Plur');
+      const wS=document.getElementById('estQa3WrapS'),wP=document.getElementById('estQa3WrapP');
+      if(btnS&&btnP){
+        btnS.addEventListener('click',()=>{btnS.classList.add('active');btnP.classList.remove('active');wS.hidden=false;wP.hidden=true;});
+        btnP.addEventListener('click',()=>{btnP.classList.add('active');btnS.classList.remove('active');wP.hidden=false;wS.hidden=true;});
+      }
+    }
+    // cityCard dentro de secciones
+    const cityCardSec=document.getElementById('cityCard');
+    if(cityCardSec&&ex.cities){
+      let countS=0;
+      const pickS=()=>{
+        const c=ex.cities[Math.floor(Math.random()*ex.cities.length)];
+        document.getElementById('cFlag').textContent=c.flag;
+        document.getElementById('cName').textContent=c.city;
+        ['cq1','cq2','cq3','cq4'].forEach(cid=>{const el=document.getElementById(cid);if(el)el.value='';});
+        document.querySelectorAll('.ans').forEach(a=>{a.classList.remove('show');a.textContent='';});
+        cityCardSec.dataset.tz=c.tz;
+        cityCardSec.dataset.loc='Está en '+c.country+', en '+c.continent+'.';
+        countS++;document.getElementById('cityCount').textContent='Ciudad '+countS;
+      };
+      document.querySelectorAll('.reveal[data-r]').forEach(btn=>btn.addEventListener('click',()=>{
+        if(btn.dataset.r==='loc'){
+          const a=document.getElementById('ans-loc');
+          a.textContent=cityCardSec.dataset.loc;a.classList.add('show');
+        } else {
+          const a=document.getElementById('ans-time');
+          try{
+            const p=new Intl.DateTimeFormat('en',{timeZone:cityCardSec.dataset.tz,hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date());
+            let H=+p.find(x=>x.type==='hour').value,M=+p.find(x=>x.type==='minute').value;
+            if(H===24)H=0;
+            a.textContent=(H<10?'0'+H:H)+':'+(M<10?'0'+M:M)+' → '+spanishTimeHM(H,M);
+          }catch(e){a.textContent='(no disponible)';}
+          a.classList.add('show');
+        }
+      }));
+      document.getElementById('cityNext').addEventListener('click',pickS);
+      pickS();
+    }
+    return;
+  }
+
+  const strip=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  app.querySelectorAll('.pr').forEach(pr=>{
+    const q=ex.quiz[+pr.dataset.i];
+    const input=pr.querySelector('input'), fb=pr.querySelector('.fb'), score=app.querySelector('.score');
+    const mark=(cls,msg)=>{fb.className='fb show '+cls;fb.innerHTML=msg;};
+    const upd=()=>{
+      const prs=[...app.querySelectorAll('.pr')];
+      const done=prs.filter(x=>x.dataset.done).length,total=ex.quiz.length;
+      const perfect=prs.filter(x=>x.dataset.perfect).length;
+      score.textContent='Aciertos: '+done+' / '+total+(done===total?' · ¡Completado! 🎉':'');
+      const hint=app.querySelector('.quiz-unlock-hint');
+      if(hint && perfect===total && total>0) hint.innerHTML='✅ ¡Quiz completo! Desbloqueando la siguiente práctica…';
+      if(perfect===total && total>0) celebrateQuiz(document.querySelector('.les')||app, id);
+    };
+    const grade=()=>{
+      const v=input.value;
+      if(!strip(v)){mark('near','Escribe algo 🙂');return;}
+      if(strip(v)===strip(q.answer)){
+        const exact=v.trim()===q.answer;
+        mark(exact?'ok':'near', exact?('¡Correcto! → <b>'+q.answer+'</b> ✓'):('¡Casi! Revisa la tilde → <b>'+q.answer+'</b>'));
+        pr.dataset.done='1'; if(exact){pr.dataset.perfect='1';delete pr.dataset.revealed;} upd();
+      } else mark('no','Inténtalo de nuevo.');
+    };
+    pr.querySelector('.check').addEventListener('click',grade);
+    input.addEventListener('keydown',e=>{if(e.key==='Enter')grade();});
+    pr.querySelector('.reveal').addEventListener('click',()=>{input.value=q.answer;mark('near','Respuesta → <b>'+q.answer+'</b>');pr.dataset.done='1';pr.dataset.revealed='1';delete pr.dataset.perfect;upd();});
+  });
+  // actividad de ciudades (si el tema la tiene)
+  const cityCard=document.getElementById('cityCard');
+  if(cityCard && ex.cities){
+    let count=0;
+    const pick=()=>{
+      const c=ex.cities[Math.floor(Math.random()*ex.cities.length)];
+      document.getElementById('cFlag').textContent=c.flag;
+      document.getElementById('cName').textContent=c.city;
+      ['cq1','cq2','cq3','cq4'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      document.querySelectorAll('.ans').forEach(a=>{a.classList.remove('show');a.textContent='';});
+      cityCard.dataset.tz=c.tz;
+      cityCard.dataset.loc='Está en '+c.country+', en '+c.continent+'.';
+      count++; document.getElementById('cityCount').textContent='Ciudad '+count;
+    };
+    document.querySelectorAll('.reveal[data-r]').forEach(btn=>btn.addEventListener('click',()=>{
+      if(btn.dataset.r==='loc'){
+        const a=document.getElementById('ans-loc');
+        a.textContent=cityCard.dataset.loc; a.classList.add('show');
+      } else {
+        const a=document.getElementById('ans-time');
+        try{
+          const p=new Intl.DateTimeFormat('en',{timeZone:cityCard.dataset.tz,hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date());
+          let H=+p.find(x=>x.type==='hour').value, M=+p.find(x=>x.type==='minute').value;
+          if(H===24)H=0;
+          a.textContent=(H<10?'0'+H:H)+':'+(M<10?'0'+M:M)+' → '+spanishTimeHM(H,M);
+        }catch(e){ a.textContent='(no disponible)'; }
+        a.classList.add('show');
+      }
+    }));
+    document.getElementById('cityNext').addEventListener('click',pick);
+    pick();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MÓDULO DE PROGRESO Y DESBLOQUEO PROGRESIVO — LQEProgress
+   • Guarda el avance del alumno en localStorage
+   • Sincroniza con Firebase para que el maestro vea el progreso
+   • Orden de desbloqueo: los temas CON EJERCICIOS del menú, en orden;
+     primero todo Indicativo, luego Subjuntivo. El 1º arranca desbloqueado.
+   ══════════════════════════════════════════════════════════════════ */
+const LQEProgress = (()=>{
+  const LS_KEY = 'lqe_progress';
+  const FB_DB  = 'https://lqe---chat-default-rtdb.firebaseio.com';
+
+  // ── MODO MAESTRO (vista previa sin candados) ──
+  // Se activa con ?maestro en la URL y se recuerda en este navegador.
+  // Se desactiva con ?maestro=off. Los estudiantes nunca lo tienen.
+  const TEACHER_KEY = 'lqe_teacher_preview';
+  (function detectTeacher(){
+    try{
+      const q = new URLSearchParams(location.search);
+      if(q.has('maestro')){
+        if(q.get('maestro')==='off'){ localStorage.removeItem(TEACHER_KEY); }
+        else { localStorage.setItem(TEACHER_KEY, '1'); }
+      }
+    }catch{}
+  })();
+  function isTeacher(){
+    try{ return localStorage.getItem(TEACHER_KEY)==='1'; }catch{ return false; }
+  }
+
+  // Orden lineal: recorre MENU en orden y toma solo los temas que tienen ejercicios.
+  // (Contenido Pro queda fuera hasta que tenga temas con ejercicios.)
+  function order(){
+    const arr=[];
+    MENU.forEach(br=>{
+      if(br.key==='pro') return;                 // Pro se maneja aparte
+      br.topics.forEach(t=>{ if(EXERCISES[t.id]) arr.push(t.id); });
+    });
+    return arr;
+  }
+
+  function nameOf(id){
+    for(const br of MENU){
+      const t=br.topics.find(x=>x.id===id);
+      if(t) return t.n;
+    }
+    return id;
+  }
+
+  function blankState(){
+    return { name:'', completed:[], updated:Date.now() };
+  }
+
+  function get(){
+    try{
+      const s=JSON.parse(localStorage.getItem(LS_KEY)||'null');
+      if(s && Array.isArray(s.completed)) return s;
+    }catch{}
+    return blankState();
+  }
+
+  function save(state){
+    state.updated=Date.now();
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    syncUp(state);
+  }
+
+  // Estado de un tema: 'done' | 'unlocked' | 'locked'
+  function stateOf(id, prog, ord){
+    prog = prog || get();
+    ord  = ord  || order();
+    const idx = ord.indexOf(id);
+    if(idx<0) return 'locked';                    // no está en la ruta → tratar como bloqueado
+    if((prog.completed||[]).includes(id)) return 'done';
+    // MODO MAESTRO: todo lo no completado aparece desbloqueado
+    if(isTeacher()) return 'unlocked';
+    // desbloqueado si es el primero, o si el anterior ya está completado
+    if(idx===0) return 'unlocked';
+    const prev = ord[idx-1];
+    if((prog.completed||[]).includes(prev)) return 'unlocked';
+    return 'locked';
+  }
+
+  // Nombre del tema-requisito (el anterior en la ruta)
+  function reqName(id, ord){
+    ord = ord || order();
+    const idx = ord.indexOf(id);
+    if(idx<=0) return '—';
+    return nameOf(ord[idx-1]);
+  }
+
+  // Marca un tema como completado y desbloquea el siguiente
+  function complete(id){
+    const prog=get();
+    if(!prog.completed) prog.completed=[];
+    if(prog.completed.includes(id)) return;        // ya estaba
+    prog.completed.push(id);
+    save(prog);
+    // avisar del desbloqueo del siguiente
+    const ord=order();
+    const idx=ord.indexOf(id);
+    const next=ord[idx+1];
+    if(next){
+      toast('🎉 ¡Completaste "'+nameOf(id)+'"! Se desbloqueó: '+nameOf(next));
+    } else {
+      toast('🏆 ¡Felicidades! Completaste todos los temas disponibles.');
+    }
+    // refrescar el menú si estamos en él
+    if(location.hash.replace(/^#\/?/,'')===''){ setTimeout(initLanding, 400); }
+  }
+
+  function setName(n){
+    const prog=get();
+    prog.name=n;
+    save(prog);
+  }
+
+  // ── Racha de días consecutivos ──
+  const STREAK_KEY='lqe_streak';
+  function getStreak(){
+    try{ return JSON.parse(localStorage.getItem(STREAK_KEY)||'null')||{days:0,last:''}; }
+    catch{ return {days:0,last:''}; }
+  }
+  function recordStreak(){
+    const today=new Date().toISOString().slice(0,10); // YYYY-MM-DD
+    const s=getStreak();
+    if(s.last===today) return s; // ya registrado hoy
+    const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+    if(s.last===yesterday){ s.days++; } else { s.days=1; }
+    s.last=today;
+    localStorage.setItem(STREAK_KEY, JSON.stringify(s));
+    return s;
+  }
+
+  // ── Nivel CEFR estimado ──
+  function cefrLevel(prog, ord){
+    prog=prog||get(); ord=ord||order();
+    const done=(prog.completed||[]).filter(id=>ord.includes(id)).length;
+    const total=ord.length;
+    // Indicativo topics (first ~16)
+    const indTopics=ord.filter(id=>{ for(const br of MENU){ if(br.key==='ind'){ return br.topics.some(t=>t.id===id); } } return false; });
+    const subTopics=ord.filter(id=>{ for(const br of MENU){ if(br.key==='sub'){ return br.topics.some(t=>t.id===id); } } return false; });
+    const indDone=indTopics.filter(id=>(prog.completed||[]).includes(id)).length;
+    const subDone=subTopics.filter(id=>(prog.completed||[]).includes(id)).length;
+    const indPct=indTopics.length?indDone/indTopics.length:0;
+    const subPct=subTopics.length?subDone/subTopics.length:0;
+    if(subPct>=0.8) return {level:'B1-B2',label:'Intermediate-Advanced',color:'#4ade80',pct:Math.round((indDone+subDone)/(indTopics.length+subTopics.length)*100)};
+    if(subPct>0) return {level:'B1',label:'Intermediate',color:'#67e8f9',pct:Math.round((indDone+subDone)/(indTopics.length+subTopics.length)*100)};
+    if(indPct>=0.8) return {level:'A2-B1',label:'Pre-Intermediate',color:'#e2a24c',pct:Math.round(indPct*100)};
+    if(indPct>=0.3) return {level:'A2',label:'Elementary',color:'#fbbf24',pct:Math.round(indPct*100)};
+    if(indPct>0) return {level:'A1-A2',label:'Beginner+',color:'#f97316',pct:Math.round(indPct*100)};
+    return {level:'A1',label:'Beginner',color:'#a78bfa',pct:0};
+  }
+
+  // ── Sincronización con Firebase (para que el maestro vea el progreso) ──
+  // Se guarda bajo /progress/<CODIGO>. El código de acceso identifica al alumno.
+  function currentCode(){
+    try{
+      const a=JSON.parse(localStorage.getItem('lqe_access_token')||'null');
+      return a && a.code ? a.code.toUpperCase() : null;
+    }catch{ return null; }
+  }
+
+  function syncUp(state){
+    if(isTeacher()) return;   // modo maestro: no ensuciar los datos de progreso reales
+    const code=currentCode();
+    if(!code) return;   // sin código no sincronizamos (modo local)
+    const payload={
+      name: state.name||'',
+      completed: state.completed||[],
+      total: order().length,
+      updated: Date.now()
+    };
+    // PUT sencillo vía REST (no requiere cargar el SDK)
+    fetch(`${FB_DB}/progress/${code}.json`, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    }).catch(()=>{});   // silencioso: si falla, el progreso local sigue intacto
+  }
+
+  // ── Toast visual ──
+  let toastEl=null, toastTimer=null;
+  function toast(msg){
+    if(!toastEl){
+      toastEl=document.createElement('div');
+      toastEl.className='lqe-toast';
+      document.body.appendChild(toastEl);
+    }
+    toastEl.innerHTML=`<span class="tico">✨</span><span>${msg}</span>`;
+    requestAnimationFrame(()=>toastEl.classList.add('show'));
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>toastEl.classList.remove('show'), 4200);
+  }
+
+  // Al iniciar, si hay un nombre en el token de acceso, adoptarlo
+  function adoptAccessName(){
+    try{
+      const a=JSON.parse(localStorage.getItem('lqe_access_token')||'null');
+      const prog=get();
+      if(a && a.code && !prog.name){
+        // intentar leer el nombre del código desde Firebase
+        fetch(`${FB_DB}/access/codes/${a.code.toUpperCase()}.json`)
+          .then(r=>r.json()).then(d=>{ if(d && d.name){ setName(d.name); } })
+          .catch(()=>{});
+      }
+    }catch{}
+  }
+
+  return { get, save, order, stateOf, reqName, complete, setName, toast, adoptAccessName, isTeacher, recordStreak, getStreak, cefrLevel };
+})();
+
+/* Detecta cuándo un tema queda "Completado".
+   REGLA: solo se completa cuando el QUIZ FINAL del tema se responde al 100% correcto
+   (todas las respuestas exactas, sin usar "revelar"). La animación de celebración
+   (celebrateQuiz) llama aquí a marcar el tema como completado. */
+function watchTopicCompletion(topicId){
+  if(!topicId) return;
+  // La lógica de completado se dispara desde celebrateQuiz() al lograr el 100%.
+  // Esta función queda como punto de enganche por compatibilidad con route().
+}
+
+/* Marca el tema como completado y lanza candado + fanfarria + confeti.
+   Se llama SOLO cuando el quiz final quedó 100% perfecto. */
+let _celebratedTopics=new Set();
+function celebrateQuiz(scopeEl, topicId){
+  if(!topicId || _celebratedTopics.has(topicId)) return;
+  _celebratedTopics.add(topicId);
+  // registrar el progreso (desbloquea el siguiente tema)
+  const yaEstaba = (LQEProgress.get().completed||[]).includes(topicId);
+  LQEProgress.complete(topicId);
+  // lanzar animación visual
+  lqeUnlockCelebration(topicId, yaEstaba);
+}
+
+/* ══ Animación de desbloqueo: candado + fanfarria + confeti ══ */
+function lqeUnlockCelebration(topicId, yaEstaba){
+  // Nombre del siguiente tema (si existe) para el mensaje
+  const order = LQEProgress.order();
+  const idx = order.indexOf(topicId);
+  const nextId = idx>=0 && idx<order.length-1 ? order[idx+1] : null;
+  const nextName = nextId ? (function(){
+    for(const br of MENU){ const t=br.topics.find(x=>x.id===nextId); if(t) return t.n; }
+    return null;
+  })() : null;
+
+  // Overlay
+  const ov=document.createElement('div');
+  ov.className='lqe-celebrate';
+  ov.innerHTML=`
+    <div class="lqe-cel-box">
+      <div class="lqe-lock">
+        <div class="lqe-lock-shackle"></div>
+        <div class="lqe-lock-body">
+          <div class="lqe-lock-key">🔑</div>
+        </div>
+      </div>
+      <div class="lqe-cel-title">¡Práctica completada!</div>
+      <div class="lqe-cel-sub">${
+        nextName
+          ? `Has desbloqueado:<br><b>${nextName}</b>`
+          : (yaEstaba ? '¡Repasaste este tema con puntaje perfecto!' : '¡Terminaste todos los temas disponibles! 🎉')
+      }</div>
+      <button class="lqe-cel-btn" id="lqeCelBtn">${nextName?'Continuar →':'¡Genial!'}</button>
+    </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add('show'));
+
+  // fanfarria sonora (WebAudio, sin archivos externos)
+  playFanfare();
+  // confeti
+  launchConfetti(ov);
+
+  // desbloquear candado tras un momento
+  setTimeout(()=>ov.querySelector('.lqe-lock')?.classList.add('open'), 350);
+
+  const close=()=>{
+    ov.classList.remove('show');
+    setTimeout(()=>ov.remove(),350);
+    if(nextName){ location.hash=''; }  // volver al menú para ver el nuevo tema desbloqueado
+  };
+  ov.querySelector('#lqeCelBtn').addEventListener('click',close);
+  ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+}
+
+function playFanfare(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return;
+    const ac=new AC();
+    const notes=[523.25,659.25,783.99,1046.50]; // Do–Mi–Sol–Do (arpegio mayor)
+    notes.forEach((f,i)=>{
+      const o=ac.createOscillator(), g=ac.createGain();
+      o.type='triangle'; o.frequency.value=f;
+      const t0=ac.currentTime+i*0.12;
+      g.gain.setValueAtTime(0,t0);
+      g.gain.linearRampToValueAtTime(0.25,t0+0.03);
+      g.gain.exponentialRampToValueAtTime(0.001,t0+0.5);
+      o.connect(g).connect(ac.destination);
+      o.start(t0); o.stop(t0+0.55);
+    });
+  }catch{}
+}
+
+function launchConfetti(container){
+  const colors=['#67e8f9','#e2a24c','#a78bfa','#4ade80','#f472b6','#fde68a'];
+  const N=90;
+  for(let i=0;i<N;i++){
+    const c=document.createElement('span');
+    c.className='lqe-confetti';
+    const size=6+Math.random()*8;
+    c.style.left=Math.random()*100+'%';
+    c.style.width=size+'px';
+    c.style.height=size*0.6+'px';
+    c.style.background=colors[i%colors.length];
+    c.style.animationDelay=(Math.random()*0.5)+'s';
+    c.style.animationDuration=(2+Math.random()*1.5)+'s';
+    c.style.transform=`rotate(${Math.random()*360}deg)`;
+    container.appendChild(c);
+    setTimeout(()=>c.remove(),4000);
+  }
+}
+
+/* ══ Certificado de progreso descargable ══ */
+function lqeShowCert(){
+  const prog=LQEProgress.get();
+  const cefr=LQEProgress.cefrLevel(prog);
+  const name=prog.name||'Student';
+  const done=(prog.completed||[]).length;
+  const total=LQEProgress.order().length;
+  const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  const c=document.createElement('canvas');
+  c.width=800; c.height=500;
+  const ctx=c.getContext('2d');
+
+  // fondo
+  const grd=ctx.createLinearGradient(0,0,800,500);
+  grd.addColorStop(0,'#0a0e1a'); grd.addColorStop(1,'#1a1030');
+  ctx.fillStyle=grd; ctx.fillRect(0,0,800,500);
+
+  // borde decorativo
+  ctx.strokeStyle='rgba(103,232,249,.4)'; ctx.lineWidth=2;
+  ctx.strokeRect(20,20,760,460);
+  ctx.strokeStyle='rgba(167,139,250,.3)'; ctx.lineWidth=1;
+  ctx.strokeRect(30,30,740,440);
+
+  // logo
+  ctx.fillStyle='#e2a24c';
+  ctx.font='bold 32px "Bricolage Grotesque", sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('LQE',400,80);
+  ctx.fillStyle='rgba(103,232,249,.7)';
+  ctx.font='14px "Space Mono", monospace';
+  ctx.fillText('Spanish Language Learning',400,100);
+
+  // título
+  ctx.fillStyle='#efe4d1';
+  ctx.font='bold 28px "Bricolage Grotesque", sans-serif';
+  ctx.fillText('Certificate of Progress',400,160);
+
+  // nombre
+  ctx.fillStyle='#67e8f9';
+  ctx.font='bold 36px "Bricolage Grotesque", sans-serif';
+  ctx.fillText(name,400,220);
+
+  // nivel
+  ctx.fillStyle='#efe4d1';
+  ctx.font='18px "Instrument Sans", sans-serif';
+  ctx.fillText('has reached level',400,260);
+  ctx.fillStyle=cefr.color;
+  ctx.font='bold 48px "Bricolage Grotesque", sans-serif';
+  ctx.fillText(cefr.level,400,318);
+  ctx.fillStyle='rgba(239,228,209,.6)';
+  ctx.font='16px "Space Mono", monospace';
+  ctx.fillText(cefr.label,400,345);
+
+  // progreso
+  ctx.fillStyle='rgba(239,228,209,.5)';
+  ctx.font='14px "Space Mono", monospace';
+  ctx.fillText(done+' of '+total+' topics completed',400,390);
+
+  // fecha
+  ctx.fillText(date,400,420);
+
+  // URL
+  ctx.fillStyle='rgba(103,232,249,.4)';
+  ctx.font='11px "Space Mono", monospace';
+  ctx.fillText('estudiantes.lqeimmersivespanish.com',400,460);
+
+  // descargar
+  const link=document.createElement('a');
+  link.download='LQE-Certificate-'+name.replace(/\s+/g,'-')+'.png';
+  link.href=c.toDataURL('image/png');
+  link.click();
+}
+
+function route(){
+  // registrar racha al navegar (si ya está logueado)
+  if(loadAccess()) LQEProgress.recordStreak();
+  const raw=location.hash.replace(/^#\/?/,'');
+  if(raw===''){ initLanding(); return; }
+  if(EXERCISES[raw]){ initTopic(raw); watchTopicCompletion(raw); return; }
+  initLanding();
+}
+window.addEventListener('hashchange',route);
+document.getElementById('back').addEventListener('click',()=>{location.hash=BACK_TO;});
+document.getElementById('brand').addEventListener('click',()=>location.hash='');
+window.addEventListener('scroll',()=>{
+  const pct=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)||0;
+  document.getElementById('progress').style.width=Math.min(pct,100)+'%';
+},{passive:true});
+
+/* ══ Modal: experiencias de inmersión (próximamente) ══
+   Se guarda el interés del alumno en Firebase bajo /experiencias_interes/
+   para que el maestro pueda revisarlo, hasta que exista una página real. */
+(function(){
+  const ovl=document.getElementById('exp-overlay');
+  const openModal=()=>{ ovl.hidden=false; };
+  const closeModal=()=>{ ovl.hidden=true; };
+  document.getElementById('expLinkAccess')?.addEventListener('click',e=>{e.preventDefault();openModal();});
+  document.getElementById('expLinkHeader')?.addEventListener('click',e=>{e.preventDefault();openModal();});
+  document.getElementById('expClose')?.addEventListener('click',closeModal);
+  ovl.addEventListener('click',e=>{ if(e.target===ovl) closeModal(); });
+  document.getElementById('expInterestBtn')?.addEventListener('click', function(){
+    const btn=this;
+    btn.disabled=true; btn.textContent='Sending…';
+    let code='SIN-CODIGO', name='';
+    try{
+      const a=JSON.parse(localStorage.getItem('lqe_access_token')||'null');
+      if(a && a.code) code=a.code.toUpperCase();
+      const prog=JSON.parse(localStorage.getItem('lqe_progress')||'null');
+      if(prog && prog.name) name=prog.name;
+    }catch{}
+    fetch(`https://lqe---chat-default-rtdb.firebaseio.com/experiencias_interes/${code}_${Date.now()}.json`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code, name, date:new Date().toISOString()})
+    }).catch(()=>{}).finally(()=>{
+      btn.hidden=true;
+      document.getElementById('expThanks').hidden=false;
+    });
+  });
+})();
+
+/* ══ PRESENCIA DEL MAESTRO VÍA FIREBASE ══ */
+import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({initializeApp})=>{
+  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({getDatabase,ref,onValue})=>{
+    const app=initializeApp({databaseURL:'https://lqe---chat-default-rtdb.firebaseio.com'},'lqe-presence');
+    const db=getDatabase(app);
+    onValue(ref(db,'maestro_online'), snap=>{
+      const online=snap.val()===true;
+      document.querySelectorAll('.topic-chat-btn').forEach(btn=>{
+        if(online){
+          btn.disabled=false;
+          btn.textContent='Abrir chat →';
+          btn.style.opacity='1';
+          btn.style.cursor='pointer';
+          btn.onclick=()=>window.open('LQE-chat-estudiante.html','lqe-chat','width=420,height=650,resizable=yes'); /* ⚠️ AL PUBLICAR: cambia la URL aquí también */
+        } else {
+          btn.disabled=true;
+          btn.textContent='El maestro no está disponible';
+          btn.style.opacity='.45';
+          btn.style.cursor='not-allowed';
+          btn.onclick=null;
+        }
+      });
+    });
+  });
+});
+
+LQEProgress.adoptAccessName();
+route();
+</script>
+</body>
+</html>

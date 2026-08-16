@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LQE — Batalla Naval · Maestro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#141820; --panel:#1a2030; --panel-2:#33271f; --line:#252e40;
+    --bone:#f1f5f9; --bone-dim:#8899b8;
+    --accent:#e2a24c; --past:#e2a24c; --pres:#67e8f9;
+    --ok:#4ade80; --bad:#f472b6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--ink);color:var(--bone);
+    font-family:"Instrument Sans",system-ui,sans-serif;padding-bottom:60px}
+  h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:0}
+  p{line-height:1.5}
+  .eyebrow{font-family:"Space Mono",monospace;text-transform:uppercase;letter-spacing:.18em;font-size:11px;color:var(--bone-dim)}
+  header{position:sticky;top:0;z-index:10;background:rgba(20,24,32,.9);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);padding:14px 20px;display:flex;align-items:center;gap:10px}
+  .brand{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px}
+  .brand em{font-style:normal;color:var(--accent)}
+  .role-badge{margin-left:auto;font-family:"Space Mono",monospace;font-size:11px;color:var(--pres);
+    background:rgba(103,232,249,.1);border:1px solid var(--pres);border-radius:99px;padding:5px 12px}
+  main{max-width:760px;margin:0 auto;padding:28px 18px}
+  .screen{display:none}
+  .screen.show{display:block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px;margin-bottom:18px}
+  .center{text-align:center}
+  .room-code{font-family:"Space Mono",monospace;font-weight:700;font-size:48px;letter-spacing:.12em;
+    color:var(--accent);background:rgba(226,162,76,.1);border:2px dashed var(--accent);border-radius:16px;
+    padding:20px;margin:18px 0}
+  .status-line{font-family:"Space Mono",monospace;font-size:13px;color:var(--bone-dim);margin-top:10px}
+  .status-line.on{color:var(--ok)}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:99px;background:var(--bone-dim);margin-right:6px}
+  .dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--pres);
+    border-radius:99px;animation:spin .8s linear infinite;margin-right:8px;vertical-align:-2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .nb-fleet-list{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+  .nb-fleet-item{background:var(--ink);border:2px solid var(--line);border-radius:12px;padding:8px 14px;
+    font-family:"Space Mono",monospace;font-size:12px;color:var(--bone-dim);display:flex;align-items:center;gap:8px}
+  .nb-fleet-item.done{border-color:var(--ok);color:var(--ok)}
+  .nb-fleet-item.current{border-color:var(--pres);color:var(--bone);background:rgba(103,232,249,.08)}
+  .nb-board-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .nb-grid{display:inline-grid;gap:4px}
+  .nb-grid-corner{width:58px;height:34px}
+  .nb-grid-head{font-family:"Space Mono",monospace;font-size:10px;color:var(--bone-dim);
+    display:flex;align-items:center;justify-content:center;text-align:center;padding:2px;min-width:58px}
+  .nb-grid-row-label{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:11px;
+    color:var(--bone-dim);display:flex;align-items:center;padding-right:6px;white-space:nowrap}
+  .nb-cell{width:58px;height:42px;background:var(--ink);border:2px solid var(--line);border-radius:8px;
+    cursor:pointer;transition:.14s;display:flex;align-items:center;justify-content:center;font-size:17px}
+  .nb-cell:hover:not(.disabled){border-color:var(--pres);transform:scale(1.05)}
+  .nb-cell.ship{background:rgba(103,232,249,.14);border-color:var(--pres)}
+  .nb-cell.selected{border-color:#fbbf24;background:rgba(251,191,36,.14)}
+  .nb-cell.agua{background:rgba(136,153,184,.08);border-color:var(--line);cursor:default}
+  .nb-cell.tocado{background:rgba(244,114,182,.18);border-color:var(--bad);cursor:default}
+  .nb-cell.hundido{background:rgba(244,114,182,.32);border-color:var(--bad);cursor:default}
+  .nb-cell.disabled{cursor:default;opacity:.9}
+  .nb-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .nb-btn{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:13px;
+    background:transparent;border:2px solid var(--line);border-radius:99px;color:var(--bone-dim);
+    padding:10px 20px;cursor:pointer;transition:.16s}
+  .nb-btn:hover{border-color:var(--pres);color:var(--bone)}
+  .nb-btn-primary{background:var(--pres);border-color:var(--pres);color:#0a1820}
+  .nb-btn-primary:hover{opacity:.9;color:#0a1820}
+  .nb-btn:disabled{opacity:.4;cursor:default;pointer-events:none}
+  .nb-boards{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+  .nb-board-t{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:13px;
+    text-align:center;margin-bottom:8px;color:var(--bone-dim)}
+  .nb-status{font-family:"Space Mono",monospace;font-size:12px;color:var(--bone-dim);text-align:center;
+    margin-bottom:14px;min-height:18px}
+  .nb-attack-panel{background:var(--ink);border:1px solid var(--line);border-radius:16px;padding:18px;
+    margin-top:14px;text-align:center}
+  .nb-attack-q{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;margin-bottom:12px}
+  .nb-attack-q b{color:var(--pres)}
+  .nb-attack-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+  .ve-write{width:100%;max-width:320px;background:var(--panel);border:2px solid var(--line);border-radius:10px;
+    color:var(--bone);font-family:"Instrument Sans";font-size:15px;padding:10px 14px;outline:none}
+  .ve-write:focus{border-color:var(--pres)}
+  .ve-write.error{border-color:var(--bad);animation:shake .35s ease}
+  @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+  .nb-log{margin-top:14px;display:flex;flex-direction:column;gap:6px;max-height:170px;overflow-y:auto}
+  .nb-log-item{font-family:"Space Mono",monospace;font-size:11px;color:var(--bone-dim);
+    background:var(--ink);border-radius:8px;padding:7px 12px}
+  .nb-log-item.you{border-left:3px solid var(--pres)}
+  .nb-log-item.them{border-left:3px solid var(--bad)}
+  .nb-end-msg{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:24px;text-align:center;margin:14px 0}
+  input::placeholder{color:#3a4a60}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">LQE <em>maestro</em></div>
+  <div class="role-badge">🚢 Batalla Naval</div>
+</header>
+<main>
+
+  <div class="screen show" id="scrRoom">
+    <div class="card center">
+      <div class="eyebrow">Paso 1 · Comparte el código</div>
+      <h2 style="margin-top:8px">Crea tu sala</h2>
+      <p style="color:var(--bone-dim);margin-top:8px">Comparte este código con tu estudiante — lo va a escribir en su portal para conectarse.</p>
+      <div class="room-code" id="roomCode">····</div>
+      <div class="status-line" id="roomStatus"><span class="spinner"></span>Creando sala…</div>
+    </div>
+  </div>
+
+  <div class="screen" id="scrPlace">
+    <div class="card">
+      <div class="eyebrow">Paso 2 · Coloca tu flota</div>
+      <h2 style="margin-top:8px">Tu flota</h2>
+      <p style="color:var(--bone-dim);margin-top:6px">Haz clic en las casillas para colocar cada barco en línea recta (horizontal o vertical). Las filas son personas, las columnas son verbos irregulares.</p>
+      <div class="nb-fleet-list" id="nbFleetList"></div>
+      <div class="nb-board-wrap"><div class="nb-grid" id="nbPlaceGrid"></div></div>
+      <div class="nb-actions">
+        <button class="nb-btn" id="nbRandomPlace" type="button">🎲 Colocar automáticamente</button>
+        <button class="nb-btn" id="nbResetPlace" type="button">↺ Reiniciar colocación</button>
+        <button class="nb-btn nb-btn-primary" id="nbConfirmPlace" type="button" disabled>⚓ ¡Listo para navegar!</button>
+      </div>
+      <div class="status-line" id="placeStatus" style="margin-top:16px"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="scrBattle">
+    <div class="card">
+      <div class="nb-status" id="nbStatus"></div>
+      <div class="nb-boards">
+        <div>
+          <div class="nb-board-t">🎯 Flota del estudiante</div>
+          <div class="nb-board-wrap"><div class="nb-grid" id="nbEnemyGrid"></div></div>
+        </div>
+        <div>
+          <div class="nb-board-t">🛡️ Tu flota</div>
+          <div class="nb-board-wrap"><div class="nb-grid" id="nbOwnGrid"></div></div>
+        </div>
+      </div>
+      <div class="nb-attack-panel" id="nbAttackPanel" hidden>
+        <div class="nb-attack-q" id="nbAttackQ"></div>
+        <input class="ve-write" id="nbAttackInput" placeholder="escribe la conjugación…" autocomplete="off">
+        <div class="nb-attack-actions">
+          <button class="nb-btn nb-btn-primary" id="nbFire" type="button">🎯 ¡Disparar!</button>
+          <button class="nb-btn" id="nbCancelFire" type="button">Cancelar</button>
+        </div>
+      </div>
+      <div class="nb-log" id="nbLog"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="scrEnd">
+    <div class="card center">
+      <div class="nb-end-msg" id="nbEndMsg"></div>
+      <button class="nb-btn nb-btn-primary" id="nbPlayAgain" type="button">🔁 Jugar otra vez (misma sala)</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   LQE — Batalla Naval (Maestro)
+   Filas = personas, columnas = 6 verbos irregulares elegidos al azar.
+   Las flotas NUNCA se suben a Firebase — solo se guardan en localStorage
+   de cada dispositivo. Lo único que se sincroniza son los disparos
+   (persona+verbo+respuesta) y su resultado, resuelto localmente por
+   quien recibe el ataque.
+   ══════════════════════════════════════════════════════════════════ */
+(function(){
+  const FB_URL='https://lqe---chat-default-rtdb.firebaseio.com';
+  const PRON=['yo','tú','él / ella / usted','nosotros','ustedes','ellos / ellas'];
+  const VERB_POOL=[
+    {inf:'hacer',  forms:['hice','hiciste','hizo','hicimos','hicieron','hicieron']},
+    {inf:'tener',  forms:['tuve','tuviste','tuvo','tuvimos','tuvieron','tuvieron']},
+    {inf:'estar',  forms:['estuve','estuviste','estuvo','estuvimos','estuvieron','estuvieron']},
+    {inf:'poder',  forms:['pude','pudiste','pudo','pudimos','pudieron','pudieron']},
+    {inf:'poner',  forms:['puse','pusiste','puso','pusimos','pusieron','pusieron']},
+    {inf:'querer', forms:['quise','quisiste','quiso','quisimos','quisieron','quisieron']},
+    {inf:'venir',  forms:['vine','viniste','vino','vinimos','vinieron','vinieron']},
+    {inf:'saber',  forms:['supe','supiste','supo','supimos','supieron','supieron']},
+    {inf:'decir',  forms:['dije','dijiste','dijo','dijimos','dijeron','dijeron']},
+    {inf:'traer',  forms:['traje','trajiste','trajo','trajimos','trajeron','trajeron']},
+    {inf:'traducir', forms:['traduje','tradujiste','tradujo','tradujimos','tradujeron','tradujeron']},
+    {inf:'ir / ser', forms:['fui','fuiste','fue','fuimos','fueron','fueron']}
+  ];
+  const FLEET_SPEC=[
+    {id:'crucero', ic:'⛴️', name:'Crucero', len:3},
+    {id:'destructor', ic:'🚤', name:'Destructor', len:2},
+    {id:'submarino', ic:'🤿', name:'Submarino', len:2}
+  ];
+  const ROWS=6, COLS=6;
+  const key=(r,c)=>r+'_'+c;
+  const endTrim=x=>(x||'').trim().replace(/[.!?]+$/,'').trim();
+  const stripN=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  const nearReason=(escrito,correcta)=>{
+    const v=endTrim(escrito), a=endTrim(correcta);
+    const sinTilde=x=>x.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(v.toLowerCase()===a.toLowerCase()) return 'Revisa la mayúscula';
+    if(sinTilde(v)===sinTilde(a)) return 'Revisa la tilde';
+    return 'Revisa la tilde y la mayúscula';
+  };
+
+  function showScreen(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show', s.id===id));
+  }
+  function pickVerbCols(){
+    const pool=VERB_POOL.slice();
+    for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+    return pool.slice(0,COLS);
+  }
+  function genRoomCode(){
+    const AB='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s='';
+    for(let i=0;i<4;i++) s+=AB[Math.floor(Math.random()*AB.length)];
+    return s;
+  }
+  function placeRandomFleet(){
+    const tmp=FLEET_SPEC.map(f=>({...f, cells:null}));
+    const used=new Set();
+    for(const s of tmp){
+      let placed=false, tries=0;
+      while(!placed && tries<300){
+        tries++;
+        const horiz=Math.random()<0.5;
+        const r0=Math.floor(Math.random()*ROWS), c0=Math.floor(Math.random()*COLS);
+        const cells=[]; let ok=true;
+        for(let k=0;k<s.len;k++){
+          const r=horiz?r0:r0+k, c=horiz?c0+k:c0;
+          if(r>=ROWS||c>=COLS){ ok=false; break; }
+          if(used.has(key(r,c))){ ok=false; break; }
+          cells.push([r,c]);
+        }
+        if(ok){ s.cells=cells; cells.forEach(([r,c])=>used.add(key(r,c))); placed=true; }
+      }
+    }
+    return tmp;
+  }
+  function isStraight(cells){
+    const rs=cells.map(x=>x[0]), cs=cells.map(x=>x[1]);
+    const sameRow=rs.every(r=>r===rs[0]), sameCol=cs.every(c=>c===cs[0]);
+    if(sameRow){ const s=[...cs].sort((a,b)=>a-b); for(let i=1;i<s.length;i++) if(s[i]!==s[i-1]+1) return false; return true; }
+    if(sameCol){ const s=[...rs].sort((a,b)=>a-b); for(let i=1;i<s.length;i++) if(s[i]!==s[i-1]+1) return false; return true; }
+    return false;
+  }
+  function shipAt(fleetArr,r,c){ for(const s of fleetArr) if(s.cells.some(([sr,sc])=>sr===r&&sc===c)) return s; return null; }
+  function resolveHit(ship,r,c){ ship.hits.add(key(r,c)); return ship.cells.every(([sr,sc])=>ship.hits.has(key(sr,sc))); }
+  function allSunk(fleetArr){ return fleetArr.every(s=>s.cells.every(([r,c])=>s.hits.has(key(r,c)))); }
+
+  // ── estado del juego ──
+  let ROOM=null, verbCols=[];
+  let fleet=[], placing=0, selected=[], placedSet=new Set();
+  let myFleetBattle=[], myShots={}, theirShots={}, gameOver=false, target=null;
+  // myShots = ataques que YO disparé (guardados en Firebase bajo alEstudiante)
+  // theirShots = ataques que ME dispararon (guardados en Firebase bajo alMaestro), ya resueltos localmente
+
+  function buildGridShell(container){
+    let html='<div class="nb-grid-corner"></div>';
+    verbCols.forEach(v=> html+=`<div class="nb-grid-head">${v.inf}</div>`);
+    for(let r=0;r<ROWS;r++){
+      html+=`<div class="nb-grid-row-label">${PRON[r]}</div>`;
+      for(let c=0;c<COLS;c++) html+=`<div class="nb-cell" data-r="${r}" data-c="${c}" id="${container.id}_${r}_${c}"></div>`;
+    }
+    container.style.gridTemplateColumns='70px repeat('+COLS+',58px)';
+    container.innerHTML=html;
+  }
+  function renderFleetList(){
+    document.getElementById('nbFleetList').innerHTML=fleet.map((s,i)=>`
+      <div class="nb-fleet-item ${s.cells?'done':(i===placing?'current':'')}">
+        <span>${s.ic}</span> ${s.name} (${s.len})${s.cells?' ✅':''}
+      </div>`).join('');
+  }
+  function paintPlaceGrid(){
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      const el=document.getElementById('nbPlaceGrid_'+r+'_'+c);
+      if(!el) continue;
+      el.className='nb-cell'; el.textContent='';
+      if(placedSet.has(key(r,c))){ el.classList.add('ship'); el.textContent='🚢'; }
+      if(selected.some(([sr,sc])=>sr===r&&sc===c)) el.classList.add('selected');
+    }
+  }
+  function resetPlacement(){
+    fleet=FLEET_SPEC.map(f=>({...f, cells:null}));
+    placedSet=new Set(); placing=0; selected=[];
+    paintPlaceGrid(); renderFleetList();
+    document.getElementById('nbConfirmPlace').disabled=true;
+  }
+  function randomPlace(){
+    fleet=placeRandomFleet();
+    placedSet=new Set();
+    fleet.forEach(s=>s.cells.forEach(([r,c])=>placedSet.add(key(r,c))));
+    placing=fleet.length; selected=[];
+    paintPlaceGrid(); renderFleetList();
+    document.getElementById('nbConfirmPlace').disabled=false;
+  }
+  function placeGridClick(r,c){
+    if(placing>=fleet.length) return;
+    const k=key(r,c);
+    if(placedSet.has(k)) return;
+    const idx=selected.findIndex(([sr,sc])=>sr===r&&sc===c);
+    if(idx>=0){ selected.splice(idx,1); paintPlaceGrid(); return; }
+    selected.push([r,c]);
+    const need=fleet[placing].len;
+    if(selected.length===need){
+      if(isStraight(selected)){
+        fleet[placing].cells=selected.slice();
+        selected.forEach(([sr,sc])=>placedSet.add(key(sr,sc)));
+        placing++; selected=[];
+        paintPlaceGrid(); renderFleetList();
+        if(placing>=fleet.length) document.getElementById('nbConfirmPlace').disabled=false;
+      } else { selected=[]; paintPlaceGrid(); }
+    } else paintPlaceGrid();
+  }
+
+  function saveShipsLocal(){
+    try{ localStorage.setItem('lqe_batalla_'+ROOM+'_barcos', JSON.stringify(fleet)); }catch(e){}
+  }
+  function loadShipsLocal(){
+    try{
+      const raw=localStorage.getItem('lqe_batalla_'+ROOM+'_barcos');
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+
+  function setStatus(t){ const el=document.getElementById('nbStatus'); if(el) el.textContent=t; }
+  function addLog(who,txt){
+    const log=document.getElementById('nbLog'); if(!log) return;
+    const div=document.createElement('div');
+    div.className='nb-log-item '+(who==='you'?'you':'them');
+    div.textContent=txt;
+    log.prepend(div);
+  }
+  function paintOwnGrid(){
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      const el=document.getElementById('nbOwnGrid_'+r+'_'+c);
+      if(!el) continue;
+      el.className='nb-cell disabled'; el.textContent='';
+      const isShip=myFleetBattle.some(s=>s.cells.some(([sr,sc])=>sr===r&&sc===c));
+      if(isShip) el.classList.add('ship');
+      const shot=theirShots[key(r,c)];
+      if(shot){ el.classList.add(shot.resultado); el.textContent = shot.resultado==='agua'?'💦':(shot.resultado==='hundido'?'💥':'🎯'); }
+      else if(isShip) el.textContent='🚢';
+    }
+  }
+  function paintEnemyGrid(){
+    const turno=window.__nbTurno;
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      const el=document.getElementById('nbEnemyGrid_'+r+'_'+c);
+      if(!el) continue;
+      const shot=myShots[key(r,c)];
+      el.className='nb-cell'; el.textContent='';
+      if(shot){
+        el.classList.add(shot.resultado?shot.resultado:'pendiente','disabled');
+        if(shot.resultado) el.textContent = shot.resultado==='agua'?'💦':(shot.resultado==='hundido'?'💥':'🎯');
+        else el.textContent='⏳';
+      } else if(target && target[0]===r && target[1]===c){
+        el.classList.add('selected');
+      } else if(turno!=='maestro' || gameOver){
+        el.classList.add('disabled');
+      }
+    }
+  }
+
+  // ── Firebase ──
+  let db=null, F={};
+  async function fbInit(){
+    const {initializeApp}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const {getDatabase,ref,set,update,get,onValue}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    const app=initializeApp({databaseURL:FB_URL},'lqe-batalla-maestro-'+Date.now());
+    db=getDatabase(app);
+    F={ref,set,update,get,onValue};
+  }
+  const roomRef=()=>F.ref(db,'batalla_naval/'+ROOM);
+
+  async function crearSala(){
+    ROOM=genRoomCode();
+    verbCols=pickVerbCols();
+    document.getElementById('roomCode').textContent=ROOM;
+    try{
+      await fbInit();
+      await F.set(roomRef(), {
+        creado:Date.now(), verbCols, turno:'maestro', ganador:null,
+        listoMaestro:false, listoEstudiante:false, estudianteConectado:false,
+        alMaestro:{}, alEstudiante:{}
+      });
+      document.getElementById('roomStatus').innerHTML='<span class="spinner"></span>Esperando a que tu estudiante se conecte…';
+      escucharSala();
+    }catch(e){
+      document.getElementById('roomStatus').textContent='⚠️ No se pudo crear la sala. Revisa tu conexión e intenta de nuevo.';
+      console.warn('Firebase batalla naval:', e);
+    }
+  }
+
+  let salaLista=false, batallaIniciada=false;
+  function escucharSala(){
+    F.onValue(roomRef(), snap=>{
+      const val=snap.val();
+      if(!val) return;
+      window.__nbTurno=val.turno;
+
+      if(val.estudianteConectado && !salaLista){
+        salaLista=true;
+        document.getElementById('roomStatus').innerHTML='<span class="dot on"></span>¡Estudiante conectado! Coloca tu flota.';
+        setTimeout(()=>{ showScreen('scrPlace'); iniciarColocacion(); }, 600);
+      }
+
+      if(val.listoMaestro && val.listoEstudiante && !batallaIniciada){
+        batallaIniciada=true;
+        iniciarBatalla();
+      }
+
+      if(batallaIniciada && !gameOver){
+        // resolver ataques entrantes (alMaestro) que aún no tengan resultado
+        const entrantes=val.alMaestro||{};
+        Object.keys(entrantes).forEach(k=>{
+          const shot=entrantes[k];
+          if(shot.resultado) return; // ya resuelto
+          const [r,c]=k.split('_').map(Number);
+          const ship=shipAt(myFleetBattle,r,c);
+          let resultado='agua', barco=null;
+          if(ship){
+            const sunk=resolveHit(ship,r,c);
+            resultado=sunk?'hundido':'tocado';
+            barco=ship.name;
+          }
+          theirShots[k]={resultado};
+          const patch={}; patch['alMaestro/'+k+'/resultado']=resultado;
+          if(barco) patch['alMaestro/'+k+'/barco']=barco;
+          const yaGanoEstudiante = allSunk(myFleetBattle);
+          if(yaGanoEstudiante){
+            patch['ganador']='estudiante';
+          } else {
+            patch['turno']='estudiante';
+          }
+          F.update(roomRef(), patch).catch(()=>{});
+          addLog('them', 'Estudiante: '+PRON[r]+' + '+verbCols[c].inf+' → "'+(shot.respuesta||'')+'" — '+(resultado==='agua'?'💦 Agua':(resultado==='hundido'?('💥 ¡Hundió tu '+barco+'!'):'🎯 ¡Tocado!')));
+          paintOwnGrid();
+        });
+
+        // reflejar resultados de MIS disparos (alEstudiante) una vez resueltos por el estudiante
+        const salientes=val.alEstudiante||{};
+        Object.keys(salientes).forEach(k=>{
+          const shot=salientes[k];
+          if(!shot.resultado) return;
+          if(myShots[k] && myShots[k].resultado) return; // ya procesado
+          myShots[k]={resultado:shot.resultado};
+          const [r,c]=k.split('_').map(Number);
+          const msg = shot.resultado==='agua'?'💦 Agua':(shot.resultado==='hundido'?('💥 ¡Hundiste su '+(shot.barco||'barco')+'!'):'🎯 ¡Tocado!');
+          addLog('you', 'Tú: '+PRON[r]+' + '+verbCols[c].inf+' → "'+shot.respuesta+'" — '+msg);
+        });
+
+        paintEnemyGrid();
+        setStatus(val.turno==='maestro' ? 'Tu turno — elige una casilla de la flota del estudiante' : 'Turno del estudiante — esperando su ataque…');
+
+        if(val.ganador && !gameOver){
+          endGame(val.ganador);
+        }
+      }
+    });
+  }
+
+  function iniciarColocacion(){
+    buildGridShell(document.getElementById('nbPlaceGrid'));
+    resetPlacement();
+  }
+
+  async function confirmarColocacion(){
+    saveShipsLocal();
+    document.getElementById('placeStatus').innerHTML='<span class="spinner"></span>Esperando a que el estudiante termine de colocar su flota…';
+    document.getElementById('nbConfirmPlace').disabled=true;
+    try{ await F.update(roomRef(), {listoMaestro:true}); }catch(e){}
+  }
+
+  function iniciarBatalla(){
+    myFleetBattle=fleet.map(s=>({...s, hits:new Set()}));
+    myShots={}; theirShots={}; gameOver=false; target=null;
+    showScreen('scrBattle');
+    buildGridShell(document.getElementById('nbEnemyGrid'));
+    buildGridShell(document.getElementById('nbOwnGrid'));
+    paintOwnGrid(); paintEnemyGrid();
+    document.getElementById('nbLog').innerHTML='';
+    setStatus('¡Comienza la batalla!');
+  }
+
+  function openAttackPanel(r,c){
+    target=[r,c]; paintEnemyGrid();
+    const verbo=verbCols[c];
+    document.getElementById('nbAttackQ').innerHTML='Conjuga <b>'+verbo.inf+'</b> para <b>'+PRON[r]+'</b> (pretérito)';
+    const inp=document.getElementById('nbAttackInput');
+    inp.value=''; inp.classList.remove('error');
+    document.getElementById('nbAttackPanel').hidden=false;
+    inp.focus();
+  }
+  function closeAttackPanel(){ target=null; document.getElementById('nbAttackPanel').hidden=true; paintEnemyGrid(); }
+
+  async function fire(){
+    if(!target) return;
+    if(window.__nbTurno!=='maestro') return;
+    const [r,c]=target;
+    const verbo=verbCols[c];
+    const correcta=verbo.forms[r];
+    const inp=document.getElementById('nbAttackInput');
+    if(stripN(inp.value)!==stripN(correcta)){
+      inp.classList.add('error');
+      setTimeout(()=>{inp.classList.remove('error');inp.value='';inp.focus();},700);
+      return;
+    }
+    const respuesta=inp.value.trim();
+    myShots[key(r,c)]={}; // pendiente
+    closeAttackPanel();
+    paintEnemyGrid();
+    try{
+      await F.update(roomRef(), { ['alEstudiante/'+key(r,c)]: {persona:r, verbo:verbo.inf, respuesta, ts:Date.now()} });
+    }catch(e){ addLog('you','⚠️ No se pudo enviar el disparo. Revisa tu conexión.'); }
+  }
+
+  function endGame(ganador){
+    gameOver=true;
+    showScreen('scrEnd');
+    const msgEl=document.getElementById('nbEndMsg');
+    if(ganador==='maestro'){
+      msgEl.textContent='🎉 ¡Hundiste toda la flota de tu estudiante! Ganaste la batalla naval.';
+      msgEl.style.color='var(--pres)';
+    } else {
+      msgEl.textContent='🏳️ Tu estudiante hundió tu flota. ¡Buena batalla!';
+      msgEl.style.color='var(--bad)';
+    }
+  }
+
+  async function jugarOtraVez(){
+    verbCols=pickVerbCols();
+    salaLista=true; batallaIniciada=false;
+    try{
+      await F.update(roomRef(), {
+        verbCols, turno:'maestro', ganador:null,
+        listoMaestro:false, listoEstudiante:false,
+        alMaestro:{}, alEstudiante:{}
+      });
+    }catch(e){}
+    showScreen('scrPlace');
+    iniciarColocacion();
+  }
+
+  // ── listeners de UI ──
+  document.getElementById('nbPlaceGrid').addEventListener('click', e=>{
+    const cell=e.target.closest('.nb-cell'); if(!cell) return;
+    placeGridClick(+cell.dataset.r, +cell.dataset.c);
+  });
+  document.getElementById('nbRandomPlace').addEventListener('click', randomPlace);
+  document.getElementById('nbResetPlace').addEventListener('click', resetPlacement);
+  document.getElementById('nbConfirmPlace').addEventListener('click', confirmarColocacion);
+  document.getElementById('nbFire').addEventListener('click', fire);
+  document.getElementById('nbCancelFire').addEventListener('click', closeAttackPanel);
+  document.getElementById('nbAttackInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); fire(); } });
+  document.getElementById('scrBattle').addEventListener('click', e=>{
+    const cell=e.target.closest('.nb-cell'); if(!cell) return;
+    if(!cell.closest('#nbEnemyGrid')) return;
+    if(window.__nbTurno!=='maestro'||gameOver) return;
+    const r=+cell.dataset.r, c=+cell.dataset.c;
+    if(myShots[key(r,c)]) return;
+    openAttackPanel(r,c);
+  });
+  document.getElementById('nbPlayAgain').addEventListener('click', jugarOtraVez);
+
+  crearSala();
+})();
+</script>
+</body>
+</html>
